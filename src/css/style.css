@@ -1,0 +1,29 @@
+bcp47-picker {
+  display: flex;
+  min-width: 300px;
+  width: 400px;
+  max-width: 100vw; 
+  position: relative; 
+}
+
+.bcp47-search {
+  flex: 1 1 auto;
+}
+
+.bcp47-results {
+  position: absolute;
+  width: 100%;
+  top: 40px;
+}
+
+.bcp47-default-script {
+  display: none;
+}
+
+.bcp47-people-groups {
+  display: none;
+}
+
+.bcp47-countries {
+  display: none;
+}
