@@ -1,0 +1,41 @@
+{
+  "name": "bcp47-picker",
+  "version": "1.0.0",
+  "description": "A CustomElement following: https://www.w3.org/International/questions/qa-choosing-language-tags",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danielbeeke/bcp47-picker.git"
+  },
+  "author": "Daniel Beeke",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/danielbeeke/bcp47-picker/issues"
+  },
+  "homepage": "https://github.com/danielbeeke/bcp47-picker#readme",
+  "type": "module",
+  "source": "src/index.ts",
+  "exports": {
+    "require": "./dist/index.cjs",
+    "default": "./dist/index.modern.js"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.module.js",
+  "unpkg": "./dist/index.umd.js",
+  "scripts": {
+    "postinstall": "node --experimental-fetch scripts/fetch-data.js",
+    "build": "microbundle",
+    "dev": "microbundle watch --no-sourcemap -f esm",
+    "demo": "parcel demo/index.html"
+  },
+  "devDependencies": {
+    "cors-anywhere": "^0.4.4",
+    "microbundle": "^0.15.0",
+    "parcel": "^2.4.1"
+  },
+  "dependencies": {
+    "flexsearch": "^0.7.0",
+    "fuse.js": "^6.6.0",
+    "uhtml": "^3.0.0",
+    "workerize": "^0.1.8"
+  }
+}
