@@ -60,3 +60,5 @@ const getSil = async () => {
 getRod()
 getIana()
 getSil()
+
+// https://datahub.io/core/language-codes/r/language-codes-full.json

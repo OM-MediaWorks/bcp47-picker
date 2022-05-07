@@ -4,13 +4,12 @@ import defaultScriptsArray from '../data/scripts'
 import { isoIndex } from '../index'
 import { iso3ToIso2 } from './iso3ToIso2'
 import { unpackRanges } from './unpackRanges'
-
+import memoizeGetters from 'memoize-getters'
 
 const scripts = iana.filter(item => item.Type === 'script')
 
-
 const defaultScripts = new Map(defaultScriptsArray)
-export class LanguageProxy {
+class LanguageProxyUncached {
   #language: any
 
   constructor (language) {
@@ -35,7 +34,13 @@ export class LanguageProxy {
    }
   get bcp47 () {
     if (this.iso2) return this.iso2
-    if (this.parent) return `${this.parent.iso2}-x-grn-${this.grn}`
+    if (this.iso3) return this.iso3
+    if (this.parent?.iso2) return `${this.parent.iso2}-x-grn-${this.grn}`
+    if (this.parent?.iso3) return `${this.parent.iso3}-x-grn-${this.grn}`
+
+    // If the code gets here we have an invalid parent code.
+    // This happens atleast for nfr.
+    if (this.#language.o) return this.#language.o
   }
   get parent () { 
     if (!this.#language.o) return null
@@ -49,3 +54,5 @@ export class LanguageProxy {
   get name () { return grn.names[this.#language.n] }
   get peopleGroups () { return unpackRanges(this.#language.g)?.map(gIndex => grn.names[gIndex]) ?? [] }
 }
+
+export const LanguageProxy = memoizeGetters(LanguageProxyUncached)

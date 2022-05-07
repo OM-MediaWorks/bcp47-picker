@@ -6,6 +6,7 @@ import { onlyUnique } from './helpers/onlyUnique'
 import './css/style.css'
 import { LanguageProxy } from './helpers/LanguageProxy'
 
+// TODO add https://www.mesaonline.org/language-metadata-table
 export const isoIndex: Map<string, number> = new Map()
 
 export const register = async (settings: Settings) => {
@@ -25,7 +26,7 @@ export const register = async (settings: Settings) => {
 
     async index () {
       this.searchIndex = new TrieSearch('', {
-        splitOnRegEx: false
+        idFieldOrFunction: 'id'
       })
 
       for (const [index, language] of grn.languages.entries()) {
@@ -45,7 +46,6 @@ export const register = async (settings: Settings) => {
         // Adds index for iso2
         if (languageInstance.iso2) {
           this.searchIndex.map(languageInstance.iso2, index)
-          isoIndex.set(languageInstance.iso2, index)
         }
 
         // Adds index for iso3
@@ -62,10 +62,15 @@ export const register = async (settings: Settings) => {
       return render(this, html`
         <input class="bcp47-search" type='search' onkeyup=${async (event: InputEvent) => {
           const searchTerm = (event.target as HTMLInputElement).value
-          this.searchResults = this.search(searchTerm)
+          this.searchResults = this.search(searchTerm.split(' '))
           .splice(0, 80)
           .filter(onlyUnique('bcp47'))
-          .sort((a: Language, b: Language) => b.population  - a.population)
+          .sort((a: Language, b: Language) => {
+            if (a.bcp47.length === b.bcp47.length) {
+              return b.population - a.population
+            }
+            return a.bcp47.length - b.bcp47.length
+          })
           this.render()
         }} />
 
@@ -93,7 +98,7 @@ export const register = async (settings: Settings) => {
         `)
     }
 
-    search (searchTerm: string): Array<Language> {
+    search (searchTerm: string | Array<string>): Array<Language> {
       const indices = this.searchIndex.search(searchTerm)
       return indices.map(index => {
         const language = grn.languages[index]
