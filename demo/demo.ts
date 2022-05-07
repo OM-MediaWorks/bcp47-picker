@@ -1,13 +1,13 @@
 import { register } from '../src/index'
 
-register({})
+register()
 
 const picker = document.createElement('bcp47-picker')
 /** @ts-ignore */
-picker.value = 'ua-x-grn-17916'
+picker.value = 'ua-Cyrl-x-grn17916'
 
 document.body.appendChild(picker)
 
-picker.addEventListener('change', (event: Event) => {
+picker.addEventListener('updated', (event: Event) => {
   console.log(event)
 })

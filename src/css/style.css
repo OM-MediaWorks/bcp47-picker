@@ -3,7 +3,8 @@ bcp47-picker {
   min-width: 300px;
   width: 400px;
   max-width: 100vw; 
-  position: relative; 
+  position: relative;
+  flex-direction: column;
 }
 
 .bcp47-search {
@@ -16,14 +17,14 @@ bcp47-picker {
   top: 40px;
 }
 
-.bcp47-default-script {
-  display: none;
+.bcp47-current-value-part .bcp47-inner {
+  display: flex;
 }
 
-.bcp47-people-groups {
-  display: none;
+.bcp47-current-value-part {
+  display: flex;
 }
 
-.bcp47-countries {
-  display: none;
+.bcp47-search-wrapper {
+  position: relative;
 }

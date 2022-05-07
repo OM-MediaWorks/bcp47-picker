@@ -1,16 +1,5 @@
-export type Settings = {
-}
+import { SourceInterface } from './Sources/SourceInterface'
 
-export type Language = {
-  original: any
-  population: number | undefined
-  grn: number
-  iso: string
-  names: Array<string>
-  name: string
-  peopleGroups: Array<string>
-  countries: Array<string>
-  bcp47: string
-  defaultScript: string
-  defaultScriptLabel: string
+export type Settings = {
+  sources: { [key: string]: SourceInterface }
 }
