@@ -33,7 +33,9 @@ Core datasets and specs:
 ## Screenshots
 
 <img src="images/searching.png" width="500" />
+<hr>
 <img src="images/properties.png" width="500" />
+<hr>
 <img src="images/advanced-properties.png" width="500" />
 
 ## Future goals:
