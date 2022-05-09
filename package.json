@@ -22,7 +22,6 @@
   "module": "./dist/index.module.js",
   "unpkg": "./dist/index.umd.js",
   "scripts": {
-    "postinstall": "node --experimental-fetch scripts/fetch-data.js",
     "build": "microbundle",
     "dev": "microbundle watch --no-sourcemap -f cjs",
     "demo": "parcel demo/index.html",
