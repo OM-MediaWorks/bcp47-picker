@@ -16,6 +16,6 @@ export type Theme = {
 }
 
 export type Settings = {
-  sources: { [key: string]: Map<string, [name: string, names: Array<string>]> }
+  sources: { [key: string]: Map<string, [name: string, names?: Array<string>]> }
   theme: Theme
 }

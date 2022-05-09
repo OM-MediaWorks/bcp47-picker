@@ -4,13 +4,14 @@ import lmt from './Data/lmt'
 
 export default {
   sources: { 
+    /** @ts-ignore */
     lmt: new Map(lmt), 
+    /** @ts-ignore */
     grn: new Map(grn),
   },
   theme: {
     valueInput: 'form-control',
     valueContainer: 'input-group',
-    partValue: '',
     base: 'bootstrap',
     valueContainerAdvanced: 'form-floating mb-3',
     showPartsButton: 'btn btn-outline-secondary',

@@ -2,7 +2,14 @@
   "compilerOptions": {
     "module": "ESNext",
     "target": "ESNext",  
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "jsx": "react",
+    "noEmit": true,
+    "isolatedModules": true,
   },
-  "exclude": ["src/data/*"]
+  "exclude": ["src/data/*"],
+  "include": ["src/custom.d.ts"]
 }

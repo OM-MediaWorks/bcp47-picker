@@ -1,4 +1,4 @@
-import { register } from '../src/index'
+import { register } from './index.cjs'
 
 register()
 
@@ -8,6 +8,6 @@ const picker = document.createElement('bcp47-picker')
 
 document.body.appendChild(picker)
 
-picker.addEventListener('updated', (event: Event) => {
+picker.addEventListener('updated', (event) => {
   console.log(event)
 })

@@ -9,7 +9,7 @@ import { iso15924 } from 'iso-15924'
 import { iso31661 } from 'iso-3166'
 import { iso6393 } from 'iso-639-3'
 import { unM49 } from 'un-m49'
-import './css/style.scss'
+import './css/style.css'
 
 export const register = async (settings: Settings = defaultSettings) => {
 
@@ -17,7 +17,7 @@ export const register = async (settings: Settings = defaultSettings) => {
 
     public searchResults: Array<any> = []
     public searchIndex: typeof TrieSearch
-    public value: string
+    public value: string = ''
 
     public showIndividualComponents: boolean = false
     public showAdvanced: boolean = false
@@ -31,7 +31,7 @@ export const register = async (settings: Settings = defaultSettings) => {
      */
     async connectedCallback () {
       this.render()
-      this.classList.add(settings.theme.base)
+      if (settings.theme.base) this.classList.add(settings.theme.base)
       setTimeout(() => {
         this.index()
         this.render()
@@ -66,11 +66,11 @@ export const register = async (settings: Settings = defaultSettings) => {
     /**
      * Searches through the text index and returns an initiated object.
      */
-    search (searchTerm: string | Array<string>) {
+    search (searchTerm: string | Array<string>): [number, [string, Array<string>]] {
       const bcp47Strings = this.searchIndex.search(searchTerm)
 
-      return bcp47Strings.map(([sourceName, index]) => {
-        return [index, settings.sources[sourceName].get(index)]
+      return bcp47Strings.map(([sourceName, index]: [string, number]) => {
+        return [index, settings.sources[sourceName].get(index.toString())]
       })
     }
 
@@ -118,7 +118,6 @@ export const register = async (settings: Settings = defaultSettings) => {
       }
 
       return html`
-
         <div class=${`bcp47-value ${settings.theme.valueContainer}`}>
           ${this.value ? html`
             <div onclick=${async () => {
@@ -136,9 +135,7 @@ export const register = async (settings: Settings = defaultSettings) => {
               ${this.value ? html`
                 <span class=${`bcp47-value-bcp47 ${settings.theme.code}`}>
                   ${this.value}
-                </span>
-
-                <span class="bcp47-remove-value" onclick=${() => {
+                </span><span class="bcp47-remove-value" onclick=${() => {
                   this.value = ''
                   this.render()
                 }}>${icon('x')}</span>
@@ -157,35 +154,47 @@ export const register = async (settings: Settings = defaultSettings) => {
 
             ${this.searchResults.length ? html`
             <span class=${`search-results-count ${settings.theme.resultCount}`}>
-              ${this.searchResults.length}
+              ${this.searchResults
+                .filter(onlyUnique('0'))
+                .length}
             </span>
             ` : null}
           `: null}
 
           ${this.showIndividualComponents ? html`
-          <button class=${this.showAdvanced ? settings.theme.collapseButton : settings.theme.expandButton } onclick=${async () => {
+          <button class=${`${this.showAdvanced ? 'active' : ''} ${this.showAdvanced ? settings.theme.collapseButton : settings.theme.expandButton}`} onclick=${async () => {
             this.showAdvanced = !this.showAdvanced
             await this.render()
           }}>${icon(this.showAdvanced ? 'chevronContract' : 'chevronExpand')}</button>
           ` : null}
 
-          <button class=${`button ${settings.theme.showPartsButton}`} onclick=${() => {
+          <button class=${`button ${this.showIndividualComponents ? 'active' : ''} ${settings.theme.showPartsButton}`} onclick=${() => {
             this.showIndividualComponents = !this.showIndividualComponents
+
+            if (this.showIndividualComponents && (
+              valueParts.privateuse.length ||
+              valueParts.extensions.length
+            )) {
+              this.showAdvanced = true
+            }
+
             this.render()
           }}>${icon('gearFill')}</button>
 
         </div>
 
-      ${this.showIndividualComponents ? html`
-      <div class="bcp47-advanced mt-3">
+      ${this.showIndividualComponents && !this.searchResults.length ? html`
+      <div class="bcp47-advanced mt-4">
+        <h6 class="mb-2">Manual configuration</h6>
+
         <div class=${`bcp47-language bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
           ${this.languageField(valueParts)}
         </div>
 
         ${this.showAdvanced ? html`
-        <div class=${`bcp47-extended-language-subtags bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
+        <div class=${`bcp47-region bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
+          <input placeholder="." class=${settings.theme.valueInput} type="text" .value=${valueParts.extendedLanguageSubtags[0] ?? ''} maxlength="3" />
           <label>Extended language subtags</label>
-          <input type="text" .value=${valueParts.extendedLanguageSubtags[0] ?? ''} maxlength="3" />
         </div>
         ` : null}
 
@@ -198,20 +207,16 @@ export const register = async (settings: Settings = defaultSettings) => {
         </div>
 
         ${this.showAdvanced ? html`
-        <div class="bcp47-extension-subtags bcp47-current-value-part">
-          <label>Extension subtags</label>
-          <div class="bcp47-inner">
-            ${valueParts.extensions.map(extension => html`<input type="text" .value=${extension ?? ''} />`)}
-          </div>
+        <div class=${`bcp47-region bcp47-current-value-part-normal ${settings.theme.valueContainerAdvanced}`}>
+            <input disabled=${!valueParts.language ? true : null} placeholder="." type="text" class=${settings.theme.valueInput} .value=${valueParts.extensions[0] ?? ''} />
+            <label>Extension subtags</label>
         </div>
         ` : null}
 
         ${this.showAdvanced ? html`
-          <div class="bcp47-private-use-subtags bcp47-current-value-part">
+          <div class=${`bcp47-region bcp47-current-value-part-normal ${settings.theme.valueContainerAdvanced}`}>
+            <input disabled=${!valueParts.language ? true : null} type="text" placeholder="." class=${settings.theme.valueInput} .value=${valueParts.privateuse[0] ?? ''} />
             <label>Private use subtags</label>
-            <div class="bcp47-inner">
-              <input type="text" .value=${valueParts.privateuse[0] ?? ''} />
-            </div>
           </div>
         ` : null}
         
@@ -232,7 +237,7 @@ export const register = async (settings: Settings = defaultSettings) => {
       `
     }
 
-    languageField (value?: Schema) {
+    languageField (value: Schema) {
       return html`
         <input placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
           value.language = (event.target as HTMLInputElement).value
@@ -258,9 +263,9 @@ export const register = async (settings: Settings = defaultSettings) => {
       `
     }
 
-    scriptsField (value?: Schema) {
+    scriptsField (value: Schema) {
       return html`
-        <input placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
+        <input disabled=${!value.language ? true : null} placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
           value.script = (event.target as HTMLInputElement).value
           this.value = stringify(value)
           this.render()
@@ -276,9 +281,9 @@ export const register = async (settings: Settings = defaultSettings) => {
       `
     }
 
-    regionField (value?: Schema) {
+    regionField (value: Schema) {
       return html`
-        <input placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
+        <input disabled=${!value.language ? true : null} placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
           value.region = (event.target as HTMLInputElement).value
           this.value = stringify(value)
           this.render()
@@ -305,7 +310,7 @@ export const register = async (settings: Settings = defaultSettings) => {
     /**
      * The template of one result item
      */
-    resultTemplate ([bcp47, [name, names]]) {
+    resultTemplate ([bcp47, [name, _names]]: [string, [string, Array<string>]]) {
       return html`
       <button type="button" class=${`bcp47-result ${settings.theme.resultItem}`} onclick=${() => {
         this.value = bcp47
