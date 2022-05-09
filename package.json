@@ -25,7 +25,15 @@
     "postinstall": "node --experimental-fetch scripts/fetch-data.js",
     "build": "microbundle",
     "dev": "microbundle watch --no-sourcemap -f esm",
-    "demo": "parcel demo/index.html"
+    "demo": "parcel docs/index.html",
+    "build-demo": "parcel build demo/index.html --dist-dir docs --target demo"
+  },
+  "targets": {
+    "demo": {
+      "engines": {
+        "browsers": "Chrome 70"
+      }
+    }
   },
   "devDependencies": {
     "@parcel/transformer-inline-string": "^2.5.0",
