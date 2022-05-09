@@ -24,14 +24,14 @@
   "scripts": {
     "postinstall": "node --experimental-fetch scripts/fetch-data.js",
     "build": "microbundle",
-    "dev": "microbundle watch --no-sourcemap -f esm",
-    "demo": "parcel docs/index.html",
-    "build-demo": "parcel build demo/index.html --dist-dir docs --target demo"
+    "dev": "microbundle watch --no-sourcemap -f cjs",
+    "demo": "parcel demo/index.html",
+    "build-demo": "rm -rf docs/ && parcel build demo/index.html --dist-dir docs --target demo && echo \"bcp47.danielbeeke.nl\" > docs/CNAME"
   },
   "targets": {
     "demo": {
       "engines": {
-        "browsers": "Chrome 70"
+        "browsers": "> .5% or last 2 versions"
       }
     }
   },

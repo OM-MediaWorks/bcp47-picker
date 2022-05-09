@@ -193,7 +193,7 @@ export const register = async (settings: Settings = defaultSettings) => {
 
         ${this.showAdvanced ? html`
         <div class=${`bcp47-region bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
-          <input placeholder="." class=${settings.theme.valueInput} type="text" .value=${valueParts.extendedLanguageSubtags[0] ?? ''} maxlength="3" />
+          <input disabled=${!valueParts.language ? true : null} placeholder="." class=${settings.theme.valueInput} type="text" .value=${valueParts.extendedLanguageSubtags[0] ?? ''} maxlength="3" />
           <label>Extended language subtags</label>
         </div>
         ` : null}

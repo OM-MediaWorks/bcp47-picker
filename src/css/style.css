@@ -1,8 +1,7 @@
 bcp47-picker {
   display: flex;
-  min-width: 600px;
   width: 600px;
-  max-width: 100vw; 
+  max-width: 100%; 
   position: relative;
   flex-direction: column;
 }
@@ -37,8 +36,14 @@ bcp47-picker {
 
 .bcp47-value-label {
   user-select: none;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
+.bcp47-value-bcp47 {
+  flex: 0 0 auto;
+}
 
 bcp47-picker.bootstrap .bcp47-current-value-part.form-floating input:not(:focus) {
   color: white;
@@ -58,4 +63,20 @@ bcp47-picker.bootstrap .bcp47-current-value-part.form-floating .bcp47-current-va
 .bcp47-remove-value {
   cursor: pointer;
   margin-left: 5px;
+}
+
+.bcp47-search.form-control {
+  text-overflow: ellipsis;
+}
+
+.bcp47-value-wrapper {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display: flex !important;
+  align-items: center;
+}
+
+.bcp47-value-label {
+
 }
