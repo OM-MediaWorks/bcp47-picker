@@ -78,6 +78,6 @@ bcp47-picker.bootstrap .bcp47-current-value-part.form-floating .bcp47-current-va
   align-items: center;
 }
 
-.bcp47-value-label {
-
+.bcp47-observer {
+  height: 100px;
 }

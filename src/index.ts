@@ -9,6 +9,7 @@ import { iso15924 } from 'iso-15924'
 import { iso31661 } from 'iso-3166'
 import { iso6393 } from 'iso-639-3'
 import { unM49 } from 'un-m49'
+import { debounce } from './helpers/debounce'
 import './css/style.css'
 
 export const register = async (settings: Settings = defaultSettings) => {
@@ -22,6 +23,9 @@ export const register = async (settings: Settings = defaultSettings) => {
     public showIndividualComponents: boolean = false
     public showAdvanced: boolean = false
     public isEditing: boolean = false
+    public maxItems: number = 20
+    private observer: any = false
+    public defaultMaxItems: number = 20
 
     public bcp47Index: Map<string, Array<[source: string, index: number]>> = new Map()
 
@@ -72,12 +76,17 @@ export const register = async (settings: Settings = defaultSettings) => {
       return bcp47Strings.map(([sourceName, index]: [string, number]) => {
         return [index, settings.sources[sourceName].get(index.toString())]
       })
+      .filter(onlyUnique('0'))
+      .sort((a: string, b: string) => {
+        return a.length - b.length
+      })
     }
 
     /**
      * The template of the whole widget.
      */
     template () {
+      console.log(this.maxItems)
       const valueParts: Schema = this.value ? parse(this.value) : {
         language: null,
         extendedLanguageSubtags: [],
@@ -148,6 +157,8 @@ export const register = async (settings: Settings = defaultSettings) => {
               const searchTerm = (event.target as HTMLInputElement).value
 
               this.searchResults = this.search(searchTerm.split(' '))
+              
+              this.maxItems = this.defaultMaxItems
 
               this.render()
             }} />
@@ -155,7 +166,6 @@ export const register = async (settings: Settings = defaultSettings) => {
             ${this.searchResults.length ? html`
             <span class=${`search-results-count ${settings.theme.resultCount}`}>
               ${this.searchResults
-                .filter(onlyUnique('0'))
                 .length}
             </span>
             ` : null}
@@ -226,15 +236,39 @@ export const register = async (settings: Settings = defaultSettings) => {
       ${this.searchResults.length ? html`
       <div class=${`bcp47-results ${settings.theme.results}`}>
       ${this.searchResults
-        .splice(0, 200)
-        .filter(onlyUnique('0'))
-        .sort((a: string, b: string) => {
-          return a.length - b.length
-        })
+        .splice(0, this.maxItems)
+
         .map((item) => this.resultTemplate(item))}
+        <div ref=${(element: HTMLDivElement) => {
+          this.observer = new IntersectionObserver(debounce(this.observerCallback.bind(this), 300), {
+            root: document.querySelector('.bcp47-results'),
+            rootMargin: '0px',
+            threshold: 1.0
+          })
+
+          this.observer.observe(element)
+        }} class="bcp47-observer"></div>
       </div>
     ` : null}
       `
+    }
+
+    observerCallback (entries: Array<any>) {
+      entries.forEach(entry => {
+        if (entry.intersectionRatio) {
+
+
+          const resultsWrapper = document.querySelector('.bcp47-results')!
+          const scrollHeight = resultsWrapper.scrollHeight
+          const clientHeight = resultsWrapper.clientHeight
+
+          if (clientHeight < scrollHeight && this.maxItems < this.searchResults.length) {
+            this.maxItems = this.maxItems + 20
+            this.render()  
+            console.log('render')
+          }
+        }
+      })
     }
 
     languageField (value: Schema) {
@@ -316,6 +350,7 @@ export const register = async (settings: Settings = defaultSettings) => {
         this.value = bcp47
         this.isEditing = false
         this.searchResults = []
+        this.maxItems = this.defaultMaxItems
         this.render()
       }}>
         <span class="bcp47-name">${name}</span>
