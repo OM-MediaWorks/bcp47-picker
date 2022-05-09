@@ -29,6 +29,7 @@
   },
   "devDependencies": {
     "@parcel/transformer-inline-string": "^2.5.0",
+    "@parcel/transformer-sass": "^2.5.0",
     "cors-anywhere": "^0.4.4",
     "microbundle": "^0.15.0",
     "parcel": "^2.4.1"

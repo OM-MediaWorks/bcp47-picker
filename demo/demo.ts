@@ -4,7 +4,7 @@ register()
 
 const picker = document.createElement('bcp47-picker')
 /** @ts-ignore */
-picker.value = 'ua-Cyrl-x-grn17916'
+// picker.value = 'de-AT'
 
 document.body.appendChild(picker)
 

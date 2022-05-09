@@ -3,25 +3,27 @@ import { Settings } from './types'
 import TrieSearch from 'trie-search'
 import { onlyUnique } from './helpers/onlyUnique'
 import defaultSettings from './defaultSettings'
-import { LanguageInterface } from './Sources/LanguageInterface'
 import { icon } from './helpers/icon'
 import { parse, stringify, Schema } from 'bcp-47'
 import { iso15924 } from 'iso-15924'
 import { iso31661 } from 'iso-3166'
 import { iso6393 } from 'iso-639-3'
 import { unM49 } from 'un-m49'
-import './css/style.css'
+import './css/style.scss'
 
 export const register = async (settings: Settings = defaultSettings) => {
 
   class Bcp47Picker extends HTMLElement {
 
-    public searchResults: Array<LanguageInterface> = []
+    public searchResults: Array<any> = []
     public searchIndex: typeof TrieSearch
     public value: string
 
+    public showIndividualComponents: boolean = false
     public showAdvanced: boolean = false
     public isEditing: boolean = false
+
+    public bcp47Index: Map<string, Array<[source: string, index: number]>> = new Map()
 
     /**
      * We render first and then we index the data.
@@ -29,7 +31,11 @@ export const register = async (settings: Settings = defaultSettings) => {
      */
     async connectedCallback () {
       this.render()
-      setTimeout(() => this.index(), 50)
+      this.classList.add(settings.theme.base)
+      setTimeout(() => {
+        this.index()
+        this.render()
+      }, 50)
     }
   
     async render () {
@@ -44,26 +50,27 @@ export const register = async (settings: Settings = defaultSettings) => {
         // splitOnRegEx: /\s|\-/g
       })
 
-      for (const source of Object.values(settings.sources)) {
-        source.index((searchString: string, index: number) => {
-          const searchStringSplit = searchString.toString().split(/ |-/)
+      for (const [sourceName, sourceItems] of Object.entries(settings.sources)) {
+        for (const [bcp47, [name, names]] of sourceItems.entries()) {
+          this.searchIndex.map(name, [sourceName, bcp47])
 
-          for (const part of searchStringSplit) {
-            this.searchIndex.map(part.toString(), [source.name, index])
+          if (names) {
+            for (const name of names) {
+              this.searchIndex.map(name, [sourceName, bcp47])
+            }  
           }
-
-          this.searchIndex.map(searchString.toString(), [source.name, index])
-        })
+        }
       }
     }
 
     /**
      * Searches through the text index and returns an initiated object.
      */
-    search (searchTerm: string | Array<string>): Array<LanguageInterface> {
-      const indices = this.searchIndex.search(searchTerm)
-      return indices.map(([sourceName, index]) => {
-        return settings.sources[sourceName].hydrate(index)
+    search (searchTerm: string | Array<string>) {
+      const bcp47Strings = this.searchIndex.search(searchTerm)
+
+      return bcp47Strings.map(([sourceName, index]) => {
+        return [index, settings.sources[sourceName].get(index)]
       })
     }
 
@@ -71,165 +78,244 @@ export const register = async (settings: Settings = defaultSettings) => {
      * The template of the whole widget.
      */
     template () {
-      const valueParts: Schema = this.value ? parse(this.value) : undefined
+      const valueParts: Schema = this.value ? parse(this.value) : {
+        language: null,
+        extendedLanguageSubtags: [],
+        script: null,
+        region: null,
+        variants: [],
+        extensions: [],
+        privateuse: [],
+        irregular: null,
+        regular: null
+      }
+
+      let label = null
+      if (this.value) {
+        for (const source of Object.keys(settings.sources)) {
+          if (!label) 
+            label = settings.sources[source].get(this.value)?.[0]
+        }
+
+        if (!label) {
+          const language = (iso6393.find(language => language.iso6391 === valueParts.language) ??
+            iso6393.find(language => language.iso6393 === valueParts.language))?.name
+          const region = (iso31661.find(region => region.alpha2 === valueParts.region) ??
+            iso31661.find(region => region.alpha3 === valueParts.region) ??
+            unM49.find(region => region.code === valueParts.region))?.name
+          const script = iso15924.find(script => script.code === valueParts.script)?.name
+
+          if (language && region) {
+            label = `${language} as spoken in ${region}`
+          }
+          else if (language && script) {
+            label = `${language} written with ${script}`
+          }
+          else if (language) {
+            label = language
+          }
+        }
+      }
 
       return html`
 
-      ${this.value && !this.isEditing ? html`
-        <div class="bcp47-value">
-          <label>${this.value}</label>
-          <button onclick=${() => {
+        <div class=${`bcp47-value ${settings.theme.valueContainer}`}>
+          ${this.value ? html`
+            <div onclick=${async () => {
+              if (!this.value) {
+                this.showIndividualComponents = false
+                this.isEditing = true
+                await this.render()
+                ;(document.querySelector('.bcp47-search') as HTMLInputElement).focus()  
+              }
+            }} class=${`bcp47-value-wrapper ${settings.theme.valueInput}`}>
+              <span class="bcp47-value-label">
+                ${this.value ? label : '- No language selected -'}
+              </span>
+
+              ${this.value ? html`
+                <span class=${`bcp47-value-bcp47 ${settings.theme.code}`}>
+                  ${this.value}
+                </span>
+
+                <span class="bcp47-remove-value" onclick=${() => {
+                  this.value = ''
+                  this.render()
+                }}>${icon('x')}</span>
+              ` : null}
+            </div>
+          ` : null}
+          
+          ${!this.value ? html`
+            <input placeholder="Search for a language, region or dialect" class=${`bcp47-search ${settings.theme.valueInput}`} type='search' onkeyup=${async (event: InputEvent) => {
+              const searchTerm = (event.target as HTMLInputElement).value
+
+              this.searchResults = this.search(searchTerm.split(' '))
+
+              this.render()
+            }} />
+
+            ${this.searchResults.length ? html`
+            <span class=${`search-results-count ${settings.theme.resultCount}`}>
+              ${this.searchResults.length}
+            </span>
+            ` : null}
+          `: null}
+
+          ${this.showIndividualComponents ? html`
+          <button class=${this.showAdvanced ? settings.theme.collapseButton : settings.theme.expandButton } onclick=${async () => {
             this.showAdvanced = !this.showAdvanced
+            await this.render()
+          }}>${icon(this.showAdvanced ? 'chevronContract' : 'chevronExpand')}</button>
+          ` : null}
+
+          <button class=${`button ${settings.theme.showPartsButton}`} onclick=${() => {
+            this.showIndividualComponents = !this.showIndividualComponents
             this.render()
           }}>${icon('gearFill')}</button>
-          <button onclick=${() => {
-            this.isEditing = !this.isEditing
-            this.render()
-          }}>${icon('search')}</button>
-        </div>
-      ` : null}
 
-      ${this.showAdvanced ? html`
-      <div class="bcp47-advanced">
-        <div class="bcp47-language bcp47-current-value-part">
-          <label>Language</label>
-          ${this.languageDropdown(valueParts.language)}
         </div>
 
-        <div class="bcp47-extended-language-subtags bcp47-current-value-part">
+      ${this.showIndividualComponents ? html`
+      <div class="bcp47-advanced mt-3">
+        <div class=${`bcp47-language bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
+          ${this.languageField(valueParts)}
+        </div>
+
+        ${this.showAdvanced ? html`
+        <div class=${`bcp47-extended-language-subtags bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
           <label>Extended language subtags</label>
           <input type="text" .value=${valueParts.extendedLanguageSubtags[0] ?? ''} maxlength="3" />
         </div>
+        ` : null}
 
-        <div class="bcp47-script bcp47-current-value-part">
-          <label>Script</label>
-          ${this.scriptsDropdown(valueParts.script)}
+        <div class=${`bcp47-script bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
+          ${this.scriptsField(valueParts)}
         </div>
 
-        <div class="bcp47-region bcp47-current-value-part">
-          <label>Region</label>
-          ${this.regionDropdown(valueParts.region)}
+        <div class=${`bcp47-region bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
+          ${this.regionField(valueParts)}
         </div>
 
+        ${this.showAdvanced ? html`
         <div class="bcp47-extension-subtags bcp47-current-value-part">
           <label>Extension subtags</label>
           <div class="bcp47-inner">
             ${valueParts.extensions.map(extension => html`<input type="text" .value=${extension ?? ''} />`)}
           </div>
         </div>
+        ` : null}
 
-        <div class="bcp47-private-use-subtags bcp47-current-value-part">
-          <label>Private use subtags</label>
-          <div class="bcp47-inner">
-            x-<input type="text" .value=${valueParts.privateuse[0] ?? ''} />
+        ${this.showAdvanced ? html`
+          <div class="bcp47-private-use-subtags bcp47-current-value-part">
+            <label>Private use subtags</label>
+            <div class="bcp47-inner">
+              <input type="text" .value=${valueParts.privateuse[0] ?? ''} />
+            </div>
           </div>
-        </div>
+        ` : null}
         
       </div>
       ` : null}
 
-      ${this.isEditing ? html`
-      <div class="bcp47-search-wrapper">
-        <button type="button" onclick=${() => {
-          this.isEditing = false
-          this.render()
-        }}>${icon('arrowLeftShort')}</button>
-        <label>Search</label>
-
-        <input class="bcp47-search" type='search' onkeyup=${async (event: InputEvent) => {
-          const searchTerm = (event.target as HTMLInputElement).value
-          this.searchResults = this.search(searchTerm.split(' '))
-            .splice(0, 200)
-            .filter(onlyUnique('name'))
-            .sort((a: LanguageInterface, b: LanguageInterface) => {
-              return a.bcp47?.length - b.bcp47?.length
-            })
-          this.render()
-        }} />
-
-        <em>Please also search for country instead of the language name</em>
-
-        ${this.searchResults.length ? html`
-          <div class="bcp47-results">
-          ${this.searchResults.map((item) => this.resultTemplate(item))}
-          </div>
-        ` : null}
-
+      ${this.searchResults.length ? html`
+      <div class=${`bcp47-results ${settings.theme.results}`}>
+      ${this.searchResults
+        .splice(0, 200)
+        .filter(onlyUnique('0'))
+        .sort((a: string, b: string) => {
+          return a.length - b.length
+        })
+        .map((item) => this.resultTemplate(item))}
       </div>
-      ` : html``}
+    ` : null}
       `
     }
 
-    languageDropdown (value?: string) {
+    languageField (value?: Schema) {
       return html`
-        <input list="countries" .value=${value ?? ''}>
+        <input placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
+          value.language = (event.target as HTMLInputElement).value
+          this.value = stringify(value)
+          this.render()
+        }} list="countries" autocomplete="off" .value=${value?.language ?? ''}>
+        <label>Language</label>
         <datalist id="countries">
           ${iso6393.map(language => {
             const code = language.iso6391 ?? language.iso6393
-            return html`<option value=${code} ?selected=${code === value}>${language.name}</option>`
+            return html`<option value=${code} ?selected=${code === value.language}>${language.name}</option>`
           })}
         </datalist>
+        <span class=${`bcp47-current-value-part-value ${settings.theme.partValue}`}>
+          ${
+            (iso6393.find(language => language.iso6391 === value.language) ??
+            iso6393.find(language => language.iso6393 === value.language))?.name
+          }
+
+          <span class=${settings.theme.code}>${value.language}</span>
+        </span>
+
       `
     }
 
-    scriptsDropdown (value?: string) {
+    scriptsField (value?: Schema) {
       return html`
-        <select>
-        <option value="">-</option>
-          ${iso15924.map(script => html`<option value=${script.code} ?selected=${script.code === value}>${script.name}</option>`)}
-        </select>
+        <input placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
+          value.script = (event.target as HTMLInputElement).value
+          this.value = stringify(value)
+          this.render()
+        }} list="scripts" autocomplete="off" .value=${value.script ?? ''}>
+        <label>Script</label>
+        <datalist id="scripts">
+          ${iso15924.map(script => html`<option value=${script.code} ?selected=${script.code === value.script}>${script.name}</option>`)}
+        </datalist>
+        <span class="bcp47-current-value-part-value">
+          ${iso15924.find(script => script.code === value.script)?.name}
+          <span class=${settings.theme.code}>${value.script}</span>
+        </span>
       `
     }
 
-    regionDropdown (value?: string) {
+    regionField (value?: Schema) {
       return html`
-        <input list="regions" .value=${value ?? ''}>
+        <input placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
+          value.region = (event.target as HTMLInputElement).value
+          this.value = stringify(value)
+          this.render()
+        }} list="regions" autocomplete="off" .value=${value.region ?? ''}>
+        <label>Region</label>
         <datalist id="regions">
           ${iso31661.map(region => {
             const code = region.alpha2 ?? region.alpha3
-            return html`<option value=${code} ?selected=${code === value}>${region.name} (ISO 3166)</option>`
+            return html`<option value=${code} ?selected=${code === value.region}>${region.name} (ISO 3166)</option>`
           })}
-          ${unM49.map(region => html`<option value=${region.code} ?selected=${region.code === value}>${region.name} (unM49)</option>`)}
+          ${unM49.map(region => html`<option value=${region.code} ?selected=${region.code === value.region}>${region.name} (unM49)</option>`)}
         </datalist>
-      `
-    }
-
-    iso31661RegionDropdown (value?: string) {
-      return html`
-        <select>
-        <option value="">-</option>
-          ${iso31661.map(country => {
-            const code = country.alpha2 ?? country.alpha3
-            return html`<option value=${code} ?selected=${code === value}>${country.name}</option>`
-          })}
-        </select>
-      `
-    }
-
-    unM49RegionDropdown (value?: string) {
-      return html`
-        <select>
-        <option value="">-</option>
-          ${unM49.map(country => {
-            return html`<option value=${country.code} ?selected=${country.code === value}>${country.name}</option>`
-          })}
-        </select>
+        <span class="bcp47-current-value-part-value">
+          ${
+            (iso31661.find(region => region.alpha2 === value.region) ??
+            iso31661.find(region => region.alpha3 === value.region) ??
+            unM49.find(region => region.code === value.region))?.name
+          }
+          <span class=${settings.theme.code}>${value.region}</span>
+        </span>
       `
     }
 
     /**
      * The template of one result item
      */
-    resultTemplate (searchResult: LanguageInterface) {
+    resultTemplate ([bcp47, [name, names]]) {
       return html`
-      <div class="bcp47-result" onclick=${() => {
-        this.value = searchResult.bcp47
+      <button type="button" class=${`bcp47-result ${settings.theme.resultItem}`} onclick=${() => {
+        this.value = bcp47
         this.isEditing = false
+        this.searchResults = []
         this.render()
       }}>
-        <span class="bcp47-name">${searchResult.name}</span>
-        <span class="bcp47-code">${searchResult.bcp47}</span>
-      </div>`
+        <span class="bcp47-name">${name}</span>
+        <span class=${`bcp47-code ${settings.theme.code}`}>${bcp47}</span>
+      </button>`
     }
   }
   
