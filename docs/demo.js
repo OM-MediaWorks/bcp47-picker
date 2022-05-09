@@ -1,4 +1,4 @@
-import { register } from './index.cjs'
+import { register } from './index.js'
 
 register()
 
