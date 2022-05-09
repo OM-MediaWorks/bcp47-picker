@@ -1,4 +1,4 @@
-import { register } from './index.js'
+import { register } from './index.umd.js'
 
 register()
 
