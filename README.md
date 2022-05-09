@@ -30,7 +30,13 @@ Core datasets and specs:
 *   [`wooorm/un-m49`](https://github.com/wooorm/un-m49)
     — UN M49 codes
 
-Future goals:
+## Screenshots
+
+<img src="images/searching.png" width="500" />
+<img src="images/properties.png" width="500" />
+<img src="images/advanced-properties.png" width="500" />
+
+## Future goals:
 
 - Tree shakeable
 - Plugins for 'private use subtags' so that a value can be entered and viewed with a custom sub widget.
