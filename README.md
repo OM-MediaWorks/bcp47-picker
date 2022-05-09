@@ -2,6 +2,16 @@
 
 This is a pluggable BCP47 picker. It allows the developer to add bcp47 tags with a label that is searchable. It uses a Trie structure so results are instant. The total size of the package is quite big. 
 
+## Demo
+
+[Demo](https://bcp47.danielbeeke.nl)
+
+## Install
+
+```npm install bcp47-picker```
+
+## Details 
+
 Datasets (it is possible to use totally different ones):
 - https://www.mesaonline.org/language-metadata-table
 - https://globalrecordings.net/en/rod
@@ -25,9 +35,4 @@ Future goals:
 - Tree shakeable
 - Plugins for 'private use subtags' so that a value can be entered and viewed with a custom sub widget.
 - Translations for the UI via fluent.js
-
-## Install
-
-```npm install bcp47-picker```
-
-[Demo](https://bcp47.danielbeeke.nl)
+- Cleanup CSS (Make Bootstrap fully optional)
