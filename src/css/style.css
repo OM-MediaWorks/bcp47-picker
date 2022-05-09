@@ -43,6 +43,7 @@ bcp47-picker {
 
 .bcp47-value-bcp47 {
   flex: 0 0 auto;
+  margin-left: 7px;
 }
 
 bcp47-picker.bootstrap .bcp47-current-value-part.form-floating input:not(:focus) {
