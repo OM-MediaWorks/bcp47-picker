@@ -236,7 +236,7 @@ export const register = async (settings: Settings = defaultSettings) => {
       ${this.searchResults.length ? html`
       <div class=${`bcp47-results ${settings.theme.results}`}>
       ${this.searchResults
-        .splice(0, this.maxItems)
+        .slice(0, this.maxItems)
 
         .map((item) => this.resultTemplate(item))}
         <div ref=${(element: HTMLDivElement) => {
@@ -256,8 +256,6 @@ export const register = async (settings: Settings = defaultSettings) => {
     observerCallback (entries: Array<any>) {
       entries.forEach(entry => {
         if (entry.intersectionRatio) {
-
-
           const resultsWrapper = document.querySelector('.bcp47-results')!
           const scrollHeight = resultsWrapper.scrollHeight
           const clientHeight = resultsWrapper.clientHeight
@@ -265,7 +263,6 @@ export const register = async (settings: Settings = defaultSettings) => {
           if (clientHeight < scrollHeight && this.maxItems < this.searchResults.length) {
             this.maxItems = this.maxItems + 20
             this.render()  
-            console.log('render')
           }
         }
       })
