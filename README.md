@@ -1,6 +1,6 @@
 # BCP47 Picker
 
-This is a pluggable BCP47 picker. It allows the developer to add bcp47 tags with a label that is searchable. It uses a Trie structure so results are instant. The total size of the package is quite big. 
+This is a pluggable BCP47 picker. It allows the developer to add bcp47 tags with a label that are searchable. It uses a Trie structure so results are instant. The total size of the package is quite big. 
 
 ## Demo
 
