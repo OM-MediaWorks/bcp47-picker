@@ -15,7 +15,11 @@ export type Theme = {
   base?: string
 }
 
+export type SourceData = Array<[string, [string, Array<string>]]>
+export type Source = Map<string, [name: string, names?: Array<string>]>
+export type Sources = { [key: string]: Source }
+
 export type Settings = {
-  sources: { [key: string]: Map<string, [name: string, names?: Array<string>]> }
+  sources: Sources
   theme: Theme
 }

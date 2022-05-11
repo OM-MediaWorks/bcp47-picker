@@ -1,8 +1,7 @@
 import { html, render } from 'uhtml'
-import { Settings } from './types'
+import { Settings, Sources } from './types'
 import TrieSearch from 'trie-search'
 import { onlyUnique } from './helpers/onlyUnique'
-import defaultSettings from './defaultSettings'
 import { icon } from './helpers/icon'
 import { parse, stringify, Schema } from 'bcp-47'
 import { iso15924 } from 'iso-15924'
@@ -10,9 +9,11 @@ import { iso31661 } from 'iso-3166'
 import { iso6393 } from 'iso-639-3'
 import { unM49 } from 'un-m49'
 import { debounce } from './helpers/debounce'
+import defaultSettings from './defaultSettings'
 import './css/style.css'
 
 export const register = async (settings: Settings = defaultSettings) => {
+  const sources = await settings.sources
 
   class Bcp47Picker extends HTMLElement {
 
@@ -54,7 +55,7 @@ export const register = async (settings: Settings = defaultSettings) => {
         // splitOnRegEx: /\s|\-/g
       })
 
-      for (const [sourceName, sourceItems] of Object.entries(settings.sources)) {
+      for (let [sourceName, sourceItems] of Object.entries(sources)) {
         for (const [bcp47, [name, names]] of sourceItems.entries()) {
           this.searchIndex.map(name, [sourceName, bcp47])
 
@@ -74,7 +75,7 @@ export const register = async (settings: Settings = defaultSettings) => {
       const bcp47Strings = this.searchIndex.search(searchTerm)
 
       return bcp47Strings.map(([sourceName, index]: [string, number]) => {
-        return [index, settings.sources[sourceName].get(index.toString())]
+        return [index, sources[sourceName].get(index.toString())]
       })
       .filter(onlyUnique('0'))
       .sort((a: string, b: string) => {
@@ -101,9 +102,9 @@ export const register = async (settings: Settings = defaultSettings) => {
 
       let label = null
       if (this.value) {
-        for (const source of Object.keys(settings.sources)) {
+        for (const source of Object.keys(sources)) {
           if (!label) 
-            label = settings.sources[source].get(this.value)?.[0]
+            label = sources[source].get(this.value)?.[0]
         }
 
         if (!label) {

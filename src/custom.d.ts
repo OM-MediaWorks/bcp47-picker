@@ -3,4 +3,3 @@ declare module "bundle-text:*" {
   export default path;
 }
 
-declare module 'trie-search';
