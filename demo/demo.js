@@ -1,5 +1,4 @@
-import { register } from '../dist/index.cjs'
-register()
+import '../dist/bcp47-picker.modern'
 
 const picker = document.createElement('bcp47-picker')
 document.body.appendChild(picker)

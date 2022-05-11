@@ -1,3 +1,5 @@
+import { Schema } from "bcp-47"
+
 export type Theme = {
   valueContainer?: string
   valueInput?: string
@@ -23,3 +25,6 @@ export type Settings = {
   sources: Sources
   theme: Theme
 }
+
+type KeyOf<T extends object> = Extract<keyof T, string>;
+export type SchemaStrings = KeyOf<Schema>

@@ -6,6 +6,11 @@ bcp47-picker {
   flex-direction: column;
 }
 
+bcp47-picker.loading,
+bcp47-picker.loading * {
+  cursor: wait;
+}
+
 .bcp47-search {
   flex: 1 1 auto;
 }
