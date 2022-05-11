@@ -1,3 +1,5 @@
 demo
 docs
 images
+node_modules
+.parcel-cache

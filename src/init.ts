@@ -3,6 +3,10 @@ import { Settings, SchemaStrings } from './types'
 
 /** @ts-ignore */
 import { FlexSearch } from 'flexsearch/dist/flexsearch.es5.js'
+
+/** @ts-ignore */
+import { encode } from 'flexsearch/dist/module/lang/latin/simple'
+
 import { onlyUnique } from './helpers/onlyUnique'
 import { icon } from './helpers/icon'
 import { debounce } from './helpers/debounce'
@@ -50,6 +54,8 @@ export const init = async (settings: Settings) => {
       this.searchIndex = new FlexSearch.Index({
         profile: 'match',
         tokenize: 'full',
+        /** @ts-ignore */
+        encode: encode
       })
       if (settings.theme.base) this.classList.add(settings.theme.base)
       setTimeout(async () => {
