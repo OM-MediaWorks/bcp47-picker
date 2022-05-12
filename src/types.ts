@@ -15,6 +15,9 @@ export type Theme = {
   valueContainerAdvanced?: string
   partValue?: string
   base?: string
+  loading?: string
+  advanced?: string
+  advancedTitle?: string
 }
 
 export type SourceData = Array<[string, [string, Array<string>]]>

@@ -28,5 +28,8 @@ export default {
       resultCount: 'input-group-text',
       collapseButton: 'btn btn-outline-secondary',
       expandButton: 'btn btn-outline-secondary',
+      loading: 'loading',
+      advanced: 'mt-4',
+      advancedTitle: 'mb-2'
     }
   } as Settings

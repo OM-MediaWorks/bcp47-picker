@@ -41,19 +41,19 @@ export const init = async (settings: Settings) => {
     public maxItems: number = 20
     private observer: any = false
     private defaultMaxItems: number = 20
-
     public bcp47Index: Map<string, Array<[source: string, index: number]>> = new Map()
 
     /**
      * We render first and then we index the data.
      */
     async connectedCallback () {
-      this.classList.add('loading')
+      this.classList.add(settings.theme.loading!)
       this.render()
 
       this.searchIndex = new FlexSearch.Index({
         profile: 'match',
         tokenize: 'full',
+        worker: true,
         /** @ts-ignore */
         encode: encode
       })
@@ -61,7 +61,7 @@ export const init = async (settings: Settings) => {
       setTimeout(async () => {
         this.index()
         await this.render()
-        this.classList.remove('loading')
+        this.classList.remove(settings.theme.loading!)
       }, 50)
     }
   
@@ -129,13 +129,23 @@ export const init = async (settings: Settings) => {
       `
     }
 
+    /**
+     * Default starting input
+     */
     emptyDisplay () {
       return html`
-        <input placeholder="Search for a language, region or dialect" class=${`bcp47-search ${settings.theme.valueInput}`} type='search' onkeyup=${async (event: InputEvent) => {
+        <input 
+          placeholder="Search for a language, region or dialect" 
+          class=${`bcp47-search ${settings.theme.valueInput}`} 
+          type='search' 
+          onkeyup=${async (event: InputEvent) => {
           const searchTerm = (event.target as HTMLInputElement).value
           this.searchResults = await this.search(searchTerm)            
           this.maxItems = this.defaultMaxItems
-          this.render()
+          await this.render()
+          const resultsWrapper = document.querySelector('.bcp47-results')
+          if (resultsWrapper) 
+            resultsWrapper.scrollTop = 0
         }} />
 
         ${this.searchResults.length ? html`
@@ -177,16 +187,20 @@ export const init = async (settings: Settings) => {
             ;(document.querySelector('.bcp47-search') as HTMLInputElement).focus()  
           }
         }} class=${`bcp47-value-wrapper ${settings.theme.valueInput}`}>
+
           <span class="bcp47-value-label">
             ${label}
           </span>
 
           <span class=${`bcp47-value-bcp47 ${settings.theme.code}`}>
             ${this.value}
-          </span><span class="bcp47-remove-value" onclick=${() => {
+          </span>
+          
+          <span class="bcp47-remove-value" onclick=${() => {
             this.value = ''
             this.render()
           }}>${icon('x')}</span>
+
         </div>
       `
     }
@@ -218,8 +232,8 @@ export const init = async (settings: Settings) => {
      */
     individualComponentsForm (value: Schema) {
       return this.showIndividualComponents && !this.searchResults.length ? html`
-      <div class="bcp47-advanced mt-4">
-        <h6 class="mb-2">Manual configuration</h6>
+      <div class=${`bcp47-advanced ${settings.theme.advanced}`}>
+        <h6 class=${`bcp47-advanced-title ${settings.theme.advancedTitle}`}>Manual configuration</h6>
 
         <div class=${`bcp47-language bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
           ${this.autoComplete('Language', languageOptions, value, 'language')}
@@ -233,11 +247,11 @@ export const init = async (settings: Settings) => {
         ` : null}
 
         <div class=${`bcp47-script bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
-          ${this.autoComplete('Script', scriptOptions, value, 'script')}
+          ${this.autoComplete('Script', scriptOptions, value, 'script', !value.language)}
         </div>
 
         <div class=${`bcp47-region bcp47-current-value-part ${settings.theme.valueContainerAdvanced}`}>
-          ${this.autoComplete('Region', regionCodesMerged, value, 'region')}
+          ${this.autoComplete('Region', regionCodesMerged, value, 'region', !value.language)}
         </div>
 
         ${this.showAdvanced ? html`
@@ -300,9 +314,9 @@ export const init = async (settings: Settings) => {
     /**
      * A re-usable autocomplete, used for Language, Region and Script.
      */
-    autoComplete (label: string, options: Array<[string, string]>, value: any, key: SchemaStrings) {
+    autoComplete (label: string, options: Array<[string, string]>, value: any, key: SchemaStrings, disabled: boolean = false) {
       return html`
-        <input placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
+        <input disabled=${disabled ? true : null} placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
           value[key] = (event.target as HTMLInputElement).value
           this.value = stringify(value)
           this.render()
@@ -330,7 +344,7 @@ export const init = async (settings: Settings) => {
         .slice(0, this.maxItems)
         .map((item) => this.resultItem(item))}
         <div ref=${(element: HTMLDivElement) => {
-          this.observer = new IntersectionObserver(debounce(this.observerCallback.bind(this), 300), {
+          this.observer = new IntersectionObserver(this.observerCallback.bind(this), {
             root: document.querySelector('.bcp47-results'),
             rootMargin: '0px',
             threshold: 1.0
@@ -338,6 +352,7 @@ export const init = async (settings: Settings) => {
 
           this.observer.observe(element)
         }} class="bcp47-observer"></div>
+        <div class="bcp47-observer-spacer" style=${`--items: ${(this.searchResults.length - this.maxItems) * 41}px`}></div>
       </div>
     ` : null
     }
