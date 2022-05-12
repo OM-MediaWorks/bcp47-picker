@@ -21,8 +21,8 @@ import { unM49 } from 'un-m49'
 import './css/style.css'
 
 const regionCodesMerged = [
-  ...iso31661.map(region => [region.alpha2, region.name]), 
-  ...unM49.map(region => [region.code, region.name])
+  ...iso31661.map(region => [region.alpha2, `${region.name} (ISO 31661)`]), 
+  ...unM49.map(region => [region.code, `${region.name} (unM49)`])
 ] as [[string, string]]
 const languageOptions = iso6393.map(language => [language.iso6391 ?? language.iso6393, language.name]) as [[string, string]]
 const scriptOptions = iso15924.map(script => [script.code, script.name]) as [[string, string]]
@@ -328,7 +328,7 @@ export const init = async (settings: Settings) => {
           })}
         </datalist>
         <span class=${`bcp47-current-value-part-value ${settings.theme.partValue}`}>
-          ${value[key] ? options.find(item => item[0] === value[key])?.[1] : null}
+          ${value[key] ? options.find(item => item[0] === value[key])?.[1]?.split(' (')?.[0] : null}
           <span class=${settings.theme.code}>${value[key]}</span>
         </span>
       `
