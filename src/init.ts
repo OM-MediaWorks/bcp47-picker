@@ -9,7 +9,6 @@ import { encode } from 'flexsearch/dist/module/lang/latin/simple'
 
 import { onlyUnique } from './helpers/onlyUnique'
 import { icon } from './helpers/icon'
-import { debounce } from './helpers/debounce'
 import { getValueOfOptions } from './helpers/getValueOfOptions'
 
 import { parse, stringify, Schema } from 'bcp-47'
@@ -30,6 +29,30 @@ const scriptOptions = iso15924.map(script => [script.code, script.name]) as [[st
 export const init = async (settings: Settings) => {
   const sources = await settings.sources
 
+  const searchIndex = new FlexSearch.Index({
+    preset: 'match',
+    tokenize: 'forward',
+    cache: true,
+    /** @ts-ignore */
+    encode: encode
+  })
+
+  const index = async () => {
+    for (let [sourceName, sourceItems] of Object.entries(sources)) {
+      for (const [bcp47, [name, names]] of sourceItems.entries()) {
+        searchIndex.add([sourceName, bcp47], name)
+
+        if (names) {
+          for (const name of names) {
+            searchIndex.add([sourceName, bcp47], name)
+          }  
+        }
+      }
+    }
+  }
+
+  setTimeout(index, 100)
+
   class Bcp47Picker extends HTMLElement {
 
     public searchResults: Array<any> = []
@@ -47,22 +70,9 @@ export const init = async (settings: Settings) => {
      * We render first and then we index the data.
      */
     async connectedCallback () {
-      this.classList.add(settings.theme.loading!)
-      this.render()
-
-      this.searchIndex = new FlexSearch.Index({
-        profile: 'match',
-        tokenize: 'full',
-        worker: true,
-        /** @ts-ignore */
-        encode: encode
-      })
+      if (this.bcp47Index.size) return
       if (settings.theme.base) this.classList.add(settings.theme.base)
-      setTimeout(async () => {
-        this.index()
-        await this.render()
-        this.classList.remove(settings.theme.loading!)
-      }, 50)
+      this.render()
     }
   
     async render () {
@@ -70,27 +80,10 @@ export const init = async (settings: Settings) => {
     }
 
     /**
-     * Creates the search index.
-     */
-    async index () {
-      for (let [sourceName, sourceItems] of Object.entries(sources)) {
-        for (const [bcp47, [name, names]] of sourceItems.entries()) {
-          this.searchIndex.add([sourceName, bcp47], name)
-
-          if (names) {
-            for (const name of names) {
-              this.searchIndex.add([sourceName, bcp47], name)
-            }  
-          }
-        }
-      }
-    }
-
-    /**
      * Searches through the text index and returns an initiated object.
      */
     async search (searchTerm: string) {
-      const bcp47Strings = await this.searchIndex.search(searchTerm)
+      const bcp47Strings = await searchIndex.search(searchTerm)
 
       return bcp47Strings.map(([sourceName, index]: [string, number]) => {
         return [index, sources[sourceName].get(index.toString())]
@@ -129,6 +122,44 @@ export const init = async (settings: Settings) => {
       `
     }
 
+    focus () {
+      (this.querySelector('.bcp47-search') as HTMLInputElement)?.focus()
+    }
+
+    get label () {
+      const value: Schema = this.value ? parse(this.value) : {
+        language: null,
+        extendedLanguageSubtags: [],
+        script: null,
+        region: null,
+        variants: [],
+        extensions: [],
+        privateuse: [],
+        irregular: null,
+        regular: null
+      }
+
+      let label = null
+      if (this.value) {
+        /**
+         * Do we have a label given by one of the sources?
+         */
+        for (const source of Object.keys(sources)) {
+          if (!label) 
+            label = sources[source].get(this.value)?.[0]
+        }
+
+        /**
+         * If not, generate it from the information we do have.
+         */
+        if (!label) {
+          label = this.getLabel(value)
+        }
+      }
+
+      return label
+    }
+
     /**
      * Default starting input
      */
@@ -160,24 +191,6 @@ export const init = async (settings: Settings) => {
      * Shows the current value
      */
     valueDisplay (value: Schema) {
-      let label = null
-      if (this.value) {
-        /**
-         * Do we have a label given by one of the sources?
-         */
-        for (const source of Object.keys(sources)) {
-          if (!label) 
-            label = sources[source].get(this.value)?.[0]
-        }
-
-        /**
-         * If not, generate it from the information we do have.
-         */
-        if (!label) {
-          label = this.getLabel(value)
-        }
-      }
-
       return html`
         <div onclick=${async () => {
           if (!this.value) {
@@ -189,7 +202,7 @@ export const init = async (settings: Settings) => {
         }} class=${`bcp47-value-wrapper ${settings.theme.valueInput}`}>
 
           <span class="bcp47-value-label">
-            ${label}
+            ${this.label}
           </span>
 
           <span class=${`bcp47-value-bcp47 ${settings.theme.code}`}>
@@ -211,13 +224,13 @@ export const init = async (settings: Settings) => {
     buttons (value: Schema) {
       return html`
       ${this.showIndividualComponents ? html`
-      <button class=${`${this.showAdvanced ? 'active' : ''} ${this.showAdvanced ? settings.theme.collapseButton : settings.theme.expandButton}`} onclick=${async () => {
+      <button type="button" class=${`${this.showAdvanced ? 'active' : ''} ${this.showAdvanced ? settings.theme.collapseButton : settings.theme.expandButton}`} onclick=${async () => {
         this.showAdvanced = !this.showAdvanced
         await this.render()
       }}>${icon(this.showAdvanced ? 'chevronContract' : 'chevronExpand')}</button>
       ` : null}
 
-      <button class=${`button ${this.showIndividualComponents ? 'active' : ''} ${settings.theme.showPartsButton}`} onclick=${() => {
+      <button type="button" class=${`button ${this.showIndividualComponents ? 'active' : ''} ${settings.theme.showPartsButton}`} onclick=${() => {
         this.showIndividualComponents = !this.showIndividualComponents
         if (this.showIndividualComponents && (value.privateuse.length || value.extensions.length)) {
           this.showAdvanced = true

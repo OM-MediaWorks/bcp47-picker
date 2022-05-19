@@ -1,6 +1,6 @@
 {
   "name": "bcp47-picker",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "A CustomElement following: https://www.w3.org/International/questions/qa-choosing-language-tags",
   "repository": {
     "type": "git",
@@ -17,13 +17,14 @@
     "src/index.ts",
     "src/init.ts"
   ],
+  "main": "./dist/bcp47-picker.cjs",
   "exports": {
-    ".": "./dist/index.modern.js",
+    ".": "./dist/bcp47-picker.modern.js",
     "./init": "./dist/init.modern.js"
   },
   "scripts": {
     "build": "rm -rf dist && microbundle",
-    "dev": "microbundle watch",
+    "dev": "rm -rf dist && microbundle watch",
     "demo": "parcel demo/index.html",
     "build-demo": "rm -rf docs/ && parcel build demo/index.html --dist-dir docs --target demo && echo \"bcp47.danielbeeke.nl\" > docs/CNAME"
   },
