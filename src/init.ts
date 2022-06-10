@@ -2,7 +2,8 @@ import { html, render } from 'uhtml'
 import { Settings, SchemaStrings } from './types'
 
 /** @ts-ignore */
-import { FlexSearch } from 'flexsearch/dist/flexsearch.es5.js'
+import FlexSearch from 'flexsearch'
+const { Index } = FlexSearch
 
 /** @ts-ignore */
 import { encode } from 'flexsearch/dist/module/lang/latin/simple'
@@ -29,7 +30,7 @@ const scriptOptions = iso15924.map(script => [script.code, script.name]) as [[st
 export const init = async (settings: Settings) => {
   const sources = await settings.sources
 
-  const searchIndex = new FlexSearch.Index({
+  const searchIndex = new Index({
     preset: 'match',
     tokenize: 'forward',
     cache: true,
@@ -56,7 +57,7 @@ export const init = async (settings: Settings) => {
   class Bcp47Picker extends HTMLElement {
 
     public searchResults: Array<any> = []
-    public searchIndex: typeof FlexSearch.Index
+    public searchIndex: typeof Index
     public value: string = ''
     public showIndividualComponents: boolean = false
     public showAdvanced: boolean = false
