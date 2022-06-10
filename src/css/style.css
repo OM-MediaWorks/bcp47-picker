@@ -11,14 +11,10 @@ bcp47-picker.loading * {
   cursor: wait;
 }
 
-.bcp47-search {
-  flex: 1 1 auto;
-}
-
 .bcp47-results {
   position: absolute;
   width: 100%;
-  top: 40px;
+  top: calc(100% + 10px);
   z-index: 10;
 }
 
@@ -74,16 +70,44 @@ bcp47-picker.bootstrap .bcp47-current-value-part.form-floating .bcp47-current-va
 
 .bcp47-search.form-control {
   text-overflow: ellipsis;
+  flex: 1 1 auto !important;
+  width: 10px;
+}
+
+.bcp47-search.form-control.hide-borders {
+  border: none;
+  margin: -5px;
+}
+
+.bcp47-search.form-control.hide-borders:focus {
+  box-shadow: none;
 }
 
 .bcp47-value-wrapper {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
+  flex: 1 1 auto !important;
+  width: auto !important;
   display: flex !important;
+  flex-wrap: wrap;
+  gap: 10px;
   align-items: center;
+  max-width: 100%;
 }
 
 .bcp47-observer-spacer {
   flex: 0 0 var(--items);
+}
+
+.bcp47-value-item {
+  display: inline-flex;
+}
+
+.bcp47-value > .bcp47-search:nth-child(2) {
+  border-left: none;
+}
+
+.bcp47-value.input-group {
+  flex-wrap: nowrap;
 }

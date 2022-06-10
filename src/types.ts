@@ -17,7 +17,9 @@ export type Theme = {
   base?: string
   loading?: string
   advanced?: string
+  valueItem?: string
   advancedTitle?: string
+  addItemButton?: string
 }
 
 export type SourceData = Array<[string, [string, Array<string>]]>

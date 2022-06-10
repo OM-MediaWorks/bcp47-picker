@@ -41,11 +41,13 @@ export const init = async (settings: Settings) => {
   const index = async () => {
     for (let [sourceName, sourceItems] of Object.entries(sources)) {
       for (const [bcp47, [name, names]] of sourceItems.entries()) {
-        searchIndex.add([sourceName, bcp47], name)
+        let index = 0
+        searchIndex.add([sourceName, bcp47, index++], name)
+        searchIndex.add([sourceName, bcp47, index++], bcp47)
 
         if (names) {
           for (const name of names) {
-            searchIndex.add([sourceName, bcp47], name)
+            searchIndex.add([sourceName, bcp47, index++], name)
           }  
         }
       }
@@ -58,7 +60,9 @@ export const init = async (settings: Settings) => {
 
     public searchResults: Array<any> = []
     public searchIndex: typeof Index
-    public value: string = ''
+    public selectedValue?: string
+    public values: Array<string> = []
+    public value?: string
     public showIndividualComponents: boolean = false
     public showAdvanced: boolean = false
     public isEditing: boolean = false
@@ -71,6 +75,9 @@ export const init = async (settings: Settings) => {
      * We render first and then we index the data.
      */
     async connectedCallback () {
+      this.values = this.getAttribute('value')?.split(/,| /g) ?? []
+      this.selectedValue = this.values?.[0] ?? ''
+
       if (this.bcp47Index.size) return
       if (settings.theme.base) this.classList.add(settings.theme.base)
       this.render()
@@ -99,7 +106,7 @@ export const init = async (settings: Settings) => {
      * The template of the whole widget.
      */
     template () {
-      const value: Schema = this.value ? parse(this.value) : {
+      const value: Schema = this.selectedValue ? parse(this.selectedValue) : {
         language: null,
         extendedLanguageSubtags: [],
         script: null,
@@ -113,7 +120,10 @@ export const init = async (settings: Settings) => {
 
       return html`
         <div class=${`bcp47-value ${settings.theme.valueContainer}`}>
-          ${this.value ? this.valueDisplay(value) : this.emptyDisplay()}
+          ${this.selectedValue ? (
+            this.valuesDisplay()
+          ) : this.emptyDisplay()}
+
           ${this.buttons(value)}
         </div>
 
@@ -127,27 +137,15 @@ export const init = async (settings: Settings) => {
       (this.querySelector('.bcp47-search') as HTMLInputElement)?.focus()
     }
 
-    get label () {
-      const value: Schema = this.value ? parse(this.value) : {
-        language: null,
-        extendedLanguageSubtags: [],
-        script: null,
-        region: null,
-        variants: [],
-        extensions: [],
-        privateuse: [],
-        irregular: null,
-        regular: null
-      }
-
+    label (value: Schema) {
       let label = null
-      if (this.value) {
+      if (value) {
         /**
          * Do we have a label given by one of the sources?
          */
         for (const source of Object.keys(sources)) {
           if (!label) 
-            label = sources[source].get(this.value)?.[0]
+            label = sources[source].get(stringify(value))?.[0]
         }
 
         /**
@@ -164,21 +162,80 @@ export const init = async (settings: Settings) => {
     /**
      * Default starting input
      */
-    emptyDisplay () {
+    emptyDisplay (hideBorder: boolean = false) {
       return html`
         <input 
-          placeholder="Search for a language, region or dialect" 
-          class=${`bcp47-search ${settings.theme.valueInput}`} 
+          placeholder=${this.values.length === 0 ? `Search for a language, region or dialect` : ''} 
+          class=${`${hideBorder? 'hide-borders' : ''} bcp47-search ${settings.theme.valueInput}`} 
           type='search' 
-          onkeyup=${async (event: InputEvent) => {
-          const searchTerm = (event.target as HTMLInputElement).value
-          this.searchResults = await this.search(searchTerm)            
-          this.maxItems = this.defaultMaxItems
-          await this.render()
-          const resultsWrapper = document.querySelector('.bcp47-results')
-          if (resultsWrapper) 
-            resultsWrapper.scrollTop = 0
-        }} />
+          onchange=${(event: Event) => {
+            event.stopPropagation()
+            event.stopImmediatePropagation()
+            event.preventDefault()  
+          }}
+          onkeyup=${async (event: KeyboardEvent) => {
+            const searchTerm = (event.target as HTMLInputElement).value
+            this.searchResults = await this.search(searchTerm)            
+            this.maxItems = this.defaultMaxItems
+            const resultsWrapper = document.querySelector('.bcp47-results')
+
+            if (event.key === 'Backspace') {
+              this.values.pop()
+              this.selectedValue = this.values[0]
+              this.value = this.values.join(',')
+            }
+
+            await this.render()
+          
+            ;(this.querySelector('.bcp47-search') as HTMLInputElement)!.focus()
+
+            if (resultsWrapper) 
+              resultsWrapper.scrollTop = 0
+          }} />
+      `
+    }
+
+    /**
+     * Shows the current value
+     */
+    valuesDisplay () {
+      return html`
+        <div class=${`bcp47-value-wrapper ${settings.theme.valueInput}`}>
+          ${this.values.map((item: string) => {
+            const value = parse(item)
+
+            return html`
+            <div class=${`bcp47-value-item ${settings.theme.valueItem}`}>
+              <span class="bcp47-value-label">
+                ${this.label(value)}
+              </span>
+
+              <span class=${`bcp47-value-bcp47 ${settings.theme.code}`}>
+                ${item}
+              </span>
+              
+              <span class="bcp47-remove-value" onclick=${async () => {
+                const selectedItem: string | undefined = this.values.find((innerValue: string) => innerValue === item)
+
+                if (selectedItem) {
+                  const index = this.values.indexOf(selectedItem)
+                  if (index !== -1) {
+                    this.values.splice(index, 1)
+                  }  
+                }
+
+                this.selectedValue = this.values[0]
+                this.value = this.values.join(',') ?? ''
+                this.dispatchEvent(new CustomEvent('change'))
+                await this.render()
+                ;(this.querySelector('.bcp47-search') as HTMLInputElement)!.focus()
+              }}>${icon('x')}</span>
+            </div>`
+          })}
+
+          ${this.hasAttribute('multiple') ? this.emptyDisplay(true) : html``}
+        </div>
+
 
         ${this.searchResults.length ? html`
         <span class=${`search-results-count ${settings.theme.resultCount}`}>
@@ -189,41 +246,11 @@ export const init = async (settings: Settings) => {
     }
 
     /**
-     * Shows the current value
-     */
-    valueDisplay (value: Schema) {
-      return html`
-        <div onclick=${async () => {
-          if (!this.value) {
-            this.showIndividualComponents = false
-            this.isEditing = true
-            await this.render()
-            ;(document.querySelector('.bcp47-search') as HTMLInputElement).focus()  
-          }
-        }} class=${`bcp47-value-wrapper ${settings.theme.valueInput}`}>
-
-          <span class="bcp47-value-label">
-            ${this.label}
-          </span>
-
-          <span class=${`bcp47-value-bcp47 ${settings.theme.code}`}>
-            ${this.value}
-          </span>
-          
-          <span class="bcp47-remove-value" onclick=${() => {
-            this.value = ''
-            this.render()
-          }}>${icon('x')}</span>
-
-        </div>
-      `
-    }
-
-    /**
      * The buttons to show the fields.
      */
     buttons (value: Schema) {
       return html`
+
       ${this.showIndividualComponents ? html`
       <button type="button" class=${`${this.showAdvanced ? 'active' : ''} ${this.showAdvanced ? settings.theme.collapseButton : settings.theme.expandButton}`} onclick=${async () => {
         this.showAdvanced = !this.showAdvanced
@@ -331,8 +358,12 @@ export const init = async (settings: Settings) => {
     autoComplete (label: string, options: Array<[string, string]>, value: any, key: SchemaStrings, disabled: boolean = false) {
       return html`
         <input disabled=${disabled ? true : null} placeholder="." class=${settings.theme.valueInput} onchange=${(event: InputEvent) => {
+          event.stopPropagation()
+          event.stopImmediatePropagation()
+          event.preventDefault()
+
           value[key] = (event.target as HTMLInputElement).value
-          this.value = stringify(value)
+          this.selectedValue = stringify(value)
           this.render()
         }} list=${key} autocomplete="off" .value=${value[key] ?? ''}>
         <label>${label}</label>
@@ -376,12 +407,17 @@ export const init = async (settings: Settings) => {
      */
     resultItem ([bcp47, [name, _names]]: [string, [string, Array<string>]]) {
       return html`
-      <button type="button" class=${`bcp47-result ${settings.theme.resultItem}`} onclick=${() => {
-        this.value = bcp47
+      <button type="button" class=${`bcp47-result ${settings.theme.resultItem}`} onclick=${async () => {
+        this.selectedValue = bcp47
+        this.values.push(bcp47)
+        this.value = this.values.join(',')
         this.isEditing = false
         this.searchResults = []
         this.maxItems = this.defaultMaxItems
-        this.render()
+        ;(this.querySelector('.bcp47-search') as HTMLInputElement).value = ''
+        this.dispatchEvent(new CustomEvent('change'))
+        await this.render()
+        ;(this.querySelector('.bcp47-search') as HTMLInputElement)!.focus()
       }}>
         <span class="bcp47-name">${name}</span>
         <span class=${`bcp47-code ${settings.theme.code}`}>${bcp47}</span>

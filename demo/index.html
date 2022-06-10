@@ -5,10 +5,10 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Demo</title>
-  <script type="module" src="./demo.js"></script>
+  <script type="module" src="/demo/demo.js"></script>
   <style>
     body { padding-block: 100px; padding-inline: 20px; }
-    bcp47-picker { margin: auto; max-width: 600px !important; }
+    bcp47-picker { margin: auto; max-width: 600px !important; display: block;}
     h1 {
       text-align: center;
       font-size: 30px !important;
@@ -20,5 +20,7 @@
 </head>
 <body>
 <h1>BCP47 picker</h1>
+<bcp47-picker class="first mb-5" value="nl"></bcp47-picker>
+<bcp47-picker multiple class="second" value="fr,de"></bcp47-picker>
 </body>
 </html>

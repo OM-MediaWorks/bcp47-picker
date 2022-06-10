@@ -1,8 +1,6 @@
-import '../dist/bcp47-picker.modern'
+import '../dist/bcp47-picker.modern.js'
 
-const picker = document.createElement('bcp47-picker')
-document.body.appendChild(picker)
-
-picker.addEventListener('updated', (event) => {
+const picker = document.querySelector('bcp47-picker.first')
+picker.addEventListener('change', (event) => {
   console.log(event)
 })

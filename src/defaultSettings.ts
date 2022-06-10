@@ -30,6 +30,8 @@ export default {
       expandButton: 'btn btn-outline-secondary',
       loading: 'loading',
       advanced: 'mt-4',
-      advancedTitle: 'mb-2'
+      advancedTitle: 'mb-2',
+      valueItem: 'item',
+      addItemButton: 'btn btn-outline-secondary',
     }
   } as Settings
