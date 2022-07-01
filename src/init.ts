@@ -1,4 +1,5 @@
-import { html, render } from 'uhtml/esm/async'
+/** @ts-ignore */
+import { html, render } from 'uhtml/esm/async.js'
 import { Settings, SchemaStrings } from './types'
 
 /** @ts-ignore */
@@ -133,7 +134,7 @@ export const init = async (settings: Settings) => {
 
         ${this.resultsWrapper()}
       `
-    }lmt
+    }
 
     focus () {
       (this.querySelector('.bcp47-search') as HTMLInputElement)?.focus()
