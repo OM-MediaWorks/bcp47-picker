@@ -1,6 +1,6 @@
 {
   "name": "bcp47-picker",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "A CustomElement following: https://www.w3.org/International/questions/qa-choosing-language-tags",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
     "src/index.ts",
     "src/init.ts"
   ],
-  "main": "./dist/bcp47-picker.js",
+  "main": "./dist/bcp47-picker.cjs",
   "exports": {
     ".": "./dist/bcp47-picker.modern.js",
     "./init": "./dist/init.modern.js"

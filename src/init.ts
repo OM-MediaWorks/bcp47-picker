@@ -1,4 +1,4 @@
-import { html, render } from 'uhtml'
+import { html, render } from 'uhtml/esm/async'
 import { Settings, SchemaStrings } from './types'
 
 /** @ts-ignore */
@@ -70,6 +70,7 @@ export const init = async (settings: Settings) => {
     private observer: any = false
     private defaultMaxItems: number = 20
     public bcp47Index: Map<string, Array<[source: string, index: number]>> = new Map()
+    private focusedResult = 0
 
     /**
      * We render first and then we index the data.
@@ -80,7 +81,8 @@ export const init = async (settings: Settings) => {
 
       if (this.bcp47Index.size) return
       if (settings.theme.base) this.classList.add(settings.theme.base)
-      this.render()
+
+      await this.render()
     }
   
     async render () {
@@ -131,7 +133,7 @@ export const init = async (settings: Settings) => {
 
         ${this.resultsWrapper()}
       `
-    }
+    }lmt
 
     focus () {
       (this.querySelector('.bcp47-search') as HTMLInputElement)?.focus()
@@ -173,24 +175,53 @@ export const init = async (settings: Settings) => {
             event.stopImmediatePropagation()
             event.preventDefault()  
           }}
-          onkeyup=${async (event: KeyboardEvent) => {
-            const searchTerm = (event.target as HTMLInputElement).value
+          onkeydown=${async (event: KeyboardEvent) => {
+            const isChar = event.key.length === 1 && event.key.match(/[a-z]/g) && !event.ctrlKey
+            const searchTerm = (event.target as HTMLInputElement).value + (isChar ? event.key : '')
             this.searchResults = await this.search(searchTerm)            
-            this.maxItems = this.defaultMaxItems
-            const resultsWrapper = document.querySelector('.bcp47-results')
 
-            if (event.key === 'Backspace') {
+            if (event.key === 'Backspace' && searchTerm.length === 0) {
               this.values.pop()
               this.selectedValue = this.values[0]
               this.value = this.values.join(',')
+              this.dispatchEvent(new CustomEvent('change'))
             }
 
-            await this.render()
-          
-            ;(this.querySelector('.bcp47-search') as HTMLInputElement)!.focus()
+            if (event.key === 'ArrowDown') {
+              this.focusedResult++
+    
+              if (this.focusedResult > this.maxItems && this.focusedResult < this.searchResults.length) {
+                await this.increaseVisibleResults()
+              }
+            }
 
-            if (resultsWrapper) 
-              resultsWrapper.scrollTop = 0
+            if (event.key === 'ArrowUp') this.focusedResult--
+    
+            if (event.key === 'Enter') {
+              await this.setValue(this.searchResults[this.focusedResult][0])
+            }
+    
+            if (this.focusedResult < 0) this.focusedResult = 0
+            if (this.focusedResult >= this.searchResults.length) this.focusedResult = this.searchResults.length - 1
+
+       
+            await this.render()
+
+            const resultsWrapper = document.querySelector('.bcp47-results')
+
+            if (resultsWrapper) {
+              if (isChar) {
+                resultsWrapper.scrollTop = 0
+              }
+              else {
+                const itemsPerPage = Math.floor(resultsWrapper.clientHeight / resultsWrapper.children[0].clientHeight)
+                const page = Math.floor(this.focusedResult / itemsPerPage)
+                const indexToScrollTo = page * itemsPerPage
+                resultsWrapper.children[indexToScrollTo]?.scrollIntoView({ behavior: 'smooth' })  
+              }
+            }
+
+            ;(this.querySelector('.bcp47-search') as HTMLInputElement)?.focus()
           }} />
       `
     }
@@ -258,12 +289,12 @@ export const init = async (settings: Settings) => {
       }}>${icon(this.showAdvanced ? 'chevronContract' : 'chevronExpand')}</button>
       ` : null}
 
-      <button type="button" class=${`button ${this.showIndividualComponents ? 'active' : ''} ${settings.theme.showPartsButton}`} onclick=${() => {
+      <button type="button" class=${`button ${this.showIndividualComponents ? 'active' : ''} ${settings.theme.showPartsButton}`} onclick=${async () => {
         this.showIndividualComponents = !this.showIndividualComponents
         if (this.showIndividualComponents && (value.privateuse.length || value.extensions.length)) {
           this.showAdvanced = true
         }
-        this.render()
+        await this.render()
       }}>${icon('gearFill')}</button>
       `
     }
@@ -338,18 +369,22 @@ export const init = async (settings: Settings) => {
      * The observer takes care of detecting scroll.
      */
     observerCallback (entries: Array<any>) {
-      entries.forEach(entry => {
+      entries.forEach(async entry => {
         if (entry.intersectionRatio) {
           const resultsWrapper = document.querySelector('.bcp47-results')!
           const scrollHeight = resultsWrapper.scrollHeight
           const clientHeight = resultsWrapper.clientHeight
 
           if (clientHeight < scrollHeight && this.maxItems < this.searchResults.length) {
-            this.maxItems = this.maxItems + 20
-            this.render()  
+            await this.increaseVisibleResults()
           }
         }
       })
+    }
+
+    async increaseVisibleResults () {
+      this.maxItems = this.maxItems + this.defaultMaxItems
+      await this.render()
     }
 
     /**
@@ -387,7 +422,7 @@ export const init = async (settings: Settings) => {
       <div class=${`bcp47-results ${settings.theme.results}`}>
       ${this.searchResults
         .slice(0, this.maxItems)
-        .map((item) => this.resultItem(item))}
+        .map((item, index) => this.resultItem(item, index))}
         <div ref=${(element: HTMLDivElement) => {
           this.observer = new IntersectionObserver(this.observerCallback.bind(this), {
             root: document.querySelector('.bcp47-results'),
@@ -405,23 +440,31 @@ export const init = async (settings: Settings) => {
     /**
      * The template of one result item
      */
-    resultItem ([bcp47, [name, _names]]: [string, [string, Array<string>]]) {
+    resultItem ([bcp47, [name, _names]]: [string, [string, Array<string>]], index: number) {
       return html`
-      <button type="button" class=${`bcp47-result ${settings.theme.resultItem}`} onclick=${async () => {
-        this.selectedValue = bcp47
-        this.values.push(bcp47)
-        this.value = this.values.join(',')
-        this.isEditing = false
-        this.searchResults = []
-        this.maxItems = this.defaultMaxItems
-        ;(this.querySelector('.bcp47-search') as HTMLInputElement).value = ''
-        this.dispatchEvent(new CustomEvent('change'))
-        await this.render()
-        ;(this.querySelector('.bcp47-search') as HTMLInputElement)!.focus()
+      <button type="button" class=${`bcp47-result ${settings.theme.resultItem} ${index === this.focusedResult ? 'active' : ''}`} onclick=${async () => {
+        this.setValue(bcp47)
       }}>
         <span class="bcp47-name">${name}</span>
         <span class=${`bcp47-code ${settings.theme.code}`}>${bcp47}</span>
       </button>`
+    }
+
+    /**
+     * Sets the value
+     */
+    async setValue (bcp47: string) {
+      this.selectedValue = bcp47
+      this.values.push(bcp47)
+      this.value = this.values.join(',')
+      this.isEditing = false
+      this.searchResults = []
+      this.maxItems = this.defaultMaxItems
+      ;(this.querySelector('.bcp47-search') as HTMLInputElement).value = ''
+      this.dispatchEvent(new CustomEvent('change'))
+      await this.render()
+      const searchField = (this.querySelector('.bcp47-search') as HTMLInputElement)
+      if (searchField) searchField.focus()
     }
   }
   
