@@ -23,8 +23,8 @@
     "./init": "./dist/init.modern.js"
   },
   "scripts": {
-    "build": "rm -rf dist && microbundle --external none",
-    "dev": "rm -rf dist && microbundle watch --external none",
+    "build": "rm -rf dist && microbundle",
+    "dev": "rm -rf dist && microbundle watch",
     "demo": "parcel demo/index.html",
     "build-demo": "rm -rf docs/ && parcel build demo/index.html --dist-dir docs --target demo && echo \"bcp47.danielbeeke.nl\" > docs/CNAME"
   },
@@ -50,7 +50,7 @@
     "bcp-47": "^2.1.0",
     "bcp-47-normalize": "^2.1.0",
     "bootstrap-icons": "^1.8.1",
-    "flexsearch": "git+https://github.com/nextapps-de/flexsearch.git",
+    "flexsearch": "^0.7.31",
     "iso-15924": "^3.1.0",
     "iso-3166": "^4.0.1",
     "iso-639-3": "^3.0.1",

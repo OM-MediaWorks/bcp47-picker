@@ -111,3 +111,11 @@ bcp47-picker.bootstrap .bcp47-current-value-part.form-floating .bcp47-current-va
 .bcp47-value.input-group {
   flex-wrap: nowrap;
 }
+
+bcp47-picker[multiple] .bcp47-value-label {
+  cursor: pointer;
+}
+
+bcp47-picker[multiple] .bcp47-value-label.active {
+  font-weight: bold;
+}

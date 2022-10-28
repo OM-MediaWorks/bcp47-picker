@@ -1,10 +1,9 @@
 /** @ts-ignore */
-import { html, render } from 'uhtml/esm/async.js'
+import { html, render } from 'uhtml/esm/async'
 import { Settings, SchemaStrings } from './types'
 
 /** @ts-ignore */
-import FlexSearch from 'flexsearch'
-const { Index } = FlexSearch
+import Index from 'flexsearch/dist/module/index'
 
 /** @ts-ignore */
 import { encode } from 'flexsearch/dist/module/lang/latin/simple'
@@ -61,7 +60,7 @@ export const init = async (settings: Settings) => {
 
     public searchResults: Array<any> = []
     public searchIndex: typeof Index
-    public selectedValue?: string
+    public selectedValue?: string | null
     public values: Array<string> = []
     public value?: string
     public showIndividualComponents: boolean = false
@@ -141,7 +140,7 @@ export const init = async (settings: Settings) => {
     }
 
     label (value: Schema) {
-      let label = null
+      let label: undefined | string = undefined
       if (value) {
         /**
          * Do we have a label given by one of the sources?
@@ -187,7 +186,9 @@ export const init = async (settings: Settings) => {
               this.value = this.values.join(',')
               this.dispatchEvent(new CustomEvent('change'))
             }
-
+            if (event.key === 'Escape') {
+              await this.setValue(null)
+            }
             if (event.key === 'ArrowDown') {
               this.focusedResult++
     
@@ -238,7 +239,10 @@ export const init = async (settings: Settings) => {
 
             return html`
             <div class=${`bcp47-value-item ${settings.theme.valueItem}`}>
-              <span class="bcp47-value-label">
+              <span onclick=${() => {
+                this.selectedValue = item
+                this.render()
+              }} class=${`bcp47-value-label ${item === this.selectedValue ? 'active' : ''}`}>
                 ${this.label(value)}
               </span>
 
@@ -346,7 +350,9 @@ export const init = async (settings: Settings) => {
     /**
      * Generates a selected label for a given schema.
      */
-    getLabel (value: Schema) {
+    getLabel (value: Schema | string) {
+      if (typeof value === 'string') value = parse(value)
+      
       let label = ''
       const language = value.language ? getValueOfOptions(languageOptions, value.language) : null
       const region = value.region ? getValueOfOptions(regionCodesMerged, value.region) : null
@@ -397,10 +403,10 @@ export const init = async (settings: Settings) => {
           event.stopPropagation()
           event.stopImmediatePropagation()
           event.preventDefault()
-
+          const oldValue = stringify(value)
           value[key] = (event.target as HTMLInputElement).value
-          this.selectedValue = stringify(value)
-          this.render()
+          this.values = this.values.filter(item => item !== oldValue)
+          this.setValue(stringify(value))
         }} list=${key} autocomplete="off" .value=${value[key] ?? ''}>
         <label>${label}</label>
         <datalist id=${key}>
@@ -454,18 +460,22 @@ export const init = async (settings: Settings) => {
     /**
      * Sets the value
      */
-    async setValue (bcp47: string) {
-      this.selectedValue = bcp47
-      this.values.push(bcp47)
+    async setValue (bcp47: string | null) {
+      if (bcp47) {
+        this.selectedValue = bcp47
+        this.values.push(bcp47)
+      }
       this.value = this.values.join(',')
       this.isEditing = false
       this.searchResults = []
       this.maxItems = this.defaultMaxItems
-      ;(this.querySelector('.bcp47-search') as HTMLInputElement).value = ''
       this.dispatchEvent(new CustomEvent('change'))
       await this.render()
       const searchField = (this.querySelector('.bcp47-search') as HTMLInputElement)
-      if (searchField) searchField.focus()
+      if (searchField) {
+        searchField.value = ''
+        searchField.focus()
+      }
     }
   }
   
