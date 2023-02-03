@@ -3,5 +3,4 @@ declare module "bundle-text:*" {
   export default path;
 }
 
-declare module "uhtml/esm/async"
 

@@ -1,5 +1,4 @@
-/** @ts-ignore */
-import { html, render } from 'uhtml/esm/async'
+import { html, render } from 'uhtml'
 import { Settings, SchemaStrings } from './types'
 
 /** @ts-ignore */
