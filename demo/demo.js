@@ -7,12 +7,13 @@ init({
   get sources () {
     return (async () => {
       return { 
+        rolv: await fetch('./data/rolv2.json')
+          .then(response => response.json())
+          .then((json) => new Map(json)), 
         lmt: await fetch('./data/lmt.json')
           .then(response => response.json())
           .then((json) => new Map(json)), 
-        rolv: await fetch('./data/rolv.json')
-          .then(response => response.json())
-          .then((json) => new Map(json)), 
+
       }
     })()
   }

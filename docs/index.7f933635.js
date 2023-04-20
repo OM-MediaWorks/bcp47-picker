@@ -1233,7 +1233,8 @@ const $516c0ea598792020$export$1ca1ec8b29a4ce27 = (name)=>new (0, $c521b6b4e1999
 
 
 const $3087701a1feb61cf$export$c7dde40abc42a582 = (options, value)=>{
-    return options.find((option)=>option[0] === value)?.[1]?.split(" (")?.[0];
+    return options.find((option)=>option[0] === value)?.[1] //?.split(' (')?.[0]
+    ;
 };
 
 
@@ -55645,8 +55646,8 @@ const $bb1ab12bbffef664$export$2cd8252107eb640b = async (givenSettings = {})=>{
     get sources () {
         return (async ()=>{
             return {
-                lmt: await fetch("./data/lmt.json").then((response)=>response.json()).then((json)=>new Map(json)),
-                rolv: await fetch("./data/rolv.json").then((response)=>response.json()).then((json)=>new Map(json))
+                rolv: await fetch("./data/rolv2.json").then((response)=>response.json()).then((json)=>new Map(json)),
+                lmt: await fetch("./data/lmt.json").then((response)=>response.json()).then((json)=>new Map(json))
             };
         })();
     }
@@ -55661,4 +55662,4 @@ $b240cded1d903745$var$picker2.addEventListener("change", (event)=>{
 });
 
 
-//# sourceMappingURL=index.f1dd3147.js.map
+//# sourceMappingURL=index.7f933635.js.map

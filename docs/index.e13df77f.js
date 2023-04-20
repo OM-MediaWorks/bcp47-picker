@@ -2017,10 +2017,11 @@ var $918b76a580930af9$export$1ca1ec8b29a4ce27 = function(name) {
 
 
 var $05e35bdb95590ee6$export$c7dde40abc42a582 = function(options, value) {
-    var _options_find__split, _options_find, _options_find_;
-    return (_options_find__split = (_options_find = options.find(function(option) {
+    var _options_find;
+    return (_options_find = options.find(function(option) {
         return option[0] === value;
-    })) === null || _options_find === void 0 ? void 0 : (_options_find_ = _options_find[1]) === null || _options_find_ === void 0 ? void 0 : _options_find_.split(" (")) === null || _options_find__split === void 0 ? void 0 : _options_find__split[0];
+    })) === null || _options_find === void 0 //?.split(' (')?.[0]
+     ? void 0 : _options_find[1];
 };
 
 
@@ -56996,17 +56997,17 @@ var $0757cf2a9f037b0c$export$2cd8252107eb640b = function() {
                         _tmp = {};
                         return [
                             4,
-                            fetch("./data/lmt.json").then(function(response) {
+                            fetch("./data/rolv2.json").then(function(response) {
                                 return response.json();
                             }).then(function(json) {
                                 return new Map(json);
                             })
                         ];
                     case 1:
-                        _tmp.lmt = _state.sent();
+                        _tmp.rolv = _state.sent();
                         return [
                             4,
-                            fetch("./data/rolv.json").then(function(response) {
+                            fetch("./data/lmt.json").then(function(response) {
                                 return response.json();
                             }).then(function(json) {
                                 return new Map(json);
@@ -57015,7 +57016,7 @@ var $0757cf2a9f037b0c$export$2cd8252107eb640b = function() {
                     case 2:
                         return [
                             2,
-                            (_tmp.rolv = _state.sent(), _tmp)
+                            (_tmp.lmt = _state.sent(), _tmp)
                         ];
                 }
             });
@@ -57032,4 +57033,4 @@ $b81c5857337cd101$var$picker2.addEventListener("change", function(event) {
 });
 
 })();
-//# sourceMappingURL=index.3c6af78d.js.map
+//# sourceMappingURL=index.e13df77f.js.map
