@@ -28,7 +28,8 @@ export type Sources = { [key: string]: Source }
 
 export type Settings = {
   sources: Sources
-  theme: Theme
+  theme: Theme,
+  alternativeHtmlName: string
 }
 
 type KeyOf<T extends object> = Extract<keyof T, string>;

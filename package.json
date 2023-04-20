@@ -26,7 +26,7 @@
     "build": "rm -rf dist && microbundle",
     "dev": "rm -rf dist && microbundle watch",
     "demo": "parcel demo/index.html",
-    "build-demo": "rm -rf docs/ && parcel build demo/index.html --dist-dir docs --target demo && echo \"bcp47.danielbeeke.nl\" > docs/CNAME"
+    "build-demo": "rm -rf docs/ && parcel build demo/index.html --no-optimize --dist-dir docs --target demo && echo \"bcp47.danielbeeke.nl\" > docs/CNAME"
   },
   "targets": {
     "demo": {

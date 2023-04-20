@@ -8,12 +8,13 @@ export default {
           lmt: await fetch('./data/lmt.json')
             .then(response => response.json())
             .then((json: SourceData) => new Map(json)), 
-          grn: await fetch('./data/grn.json')
-            .then(response => response.json())
-            .then((json: SourceData) => new Map(json)), 
+          // rolv: await fetch('./data/rolv.json')
+          //   .then(response => response.json())
+          //   .then((json: SourceData) => new Map(json)), 
         }
       })()
     },
+    alternativeHtmlName: 'bcp47-picker',
     theme: {
       valueInput: 'form-control',
       valueContainer: 'input-group',

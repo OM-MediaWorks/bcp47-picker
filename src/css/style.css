@@ -1,4 +1,4 @@
-bcp47-picker {
+.bcp47-picker {
   display: flex;
   width: 100%;
   max-width: 100%; 
@@ -6,8 +6,8 @@ bcp47-picker {
   flex-direction: column;
 }
 
-bcp47-picker.loading,
-bcp47-picker.loading * {
+.bcp47-picker.loading,
+.bcp47-picker.loading * {
   cursor: wait;
 }
 
@@ -48,15 +48,15 @@ bcp47-picker.loading * {
   margin-left: 7px;
 }
 
-bcp47-picker.bootstrap .bcp47-current-value-part.form-floating input:not(:focus) {
+.bcp47-picker.bootstrap .bcp47-current-value-part.form-floating input:not(:focus) {
   color: white;
 }
 
-bcp47-picker.bootstrap .bcp47-current-value-part.form-floating input:focus ~ .bcp47-current-value-part-value {
+.bcp47-picker.bootstrap .bcp47-current-value-part.form-floating input:focus ~ .bcp47-current-value-part-value {
       display: none;
     }
 
-bcp47-picker.bootstrap .bcp47-current-value-part.form-floating .bcp47-current-value-part-value {
+.bcp47-picker.bootstrap .bcp47-current-value-part.form-floating .bcp47-current-value-part-value {
   position: absolute;
   top: 26px;
   left: 13px;
@@ -112,10 +112,10 @@ bcp47-picker.bootstrap .bcp47-current-value-part.form-floating .bcp47-current-va
   flex-wrap: nowrap;
 }
 
-bcp47-picker[multiple] .bcp47-value-label {
+.bcp47-picker[multiple] .bcp47-value-label {
   cursor: pointer;
 }
 
-bcp47-picker[multiple] .bcp47-value-label.active {
+.bcp47-picker[multiple] .bcp47-value-label.active {
   font-weight: bold;
 }

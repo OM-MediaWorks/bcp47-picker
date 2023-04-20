@@ -17,6 +17,8 @@ import { iso31661 } from 'iso-3166'
 import { iso6393 } from 'iso-639-3'
 import { unM49 } from 'un-m49'
 
+import defaultSettings from './defaultSettings'
+
 import './css/style.css'
 
 const regionCodesMerged = [
@@ -26,7 +28,15 @@ const regionCodesMerged = [
 const languageOptions = iso6393.map(language => [language.iso6391 ?? language.iso6393, language.name]) as [[string, string]]
 const scriptOptions = iso15924.map(script => [script.code, script.name]) as [[string, string]]
 
-export const init = async (settings: Settings) => {
+export const init = async (givenSettings: Partial<Settings> = {}) => {
+
+  const settings = { ...defaultSettings }
+
+  for (const [key, value] of Object.entries(givenSettings)) {
+    /** @ts-ignore */
+    settings[key as keyof typeof settings] = value
+  }
+
   const sources = await settings.sources
 
   const searchIndex = new Index({
@@ -77,6 +87,7 @@ export const init = async (settings: Settings) => {
     async connectedCallback () {
       this.values = this.getAttribute('value')?.split(/,| /g) ?? []
       this.selectedValue = this.values?.[0] ?? ''
+      this.classList.add('bcp47-picker')
 
       if (this.bcp47Index.size) return
       if (settings.theme.base) this.classList.add(settings.theme.base)
@@ -477,6 +488,6 @@ export const init = async (settings: Settings) => {
       }
     }
   }
-  
-  customElements.define('bcp47-picker', Bcp47Picker)
+
+  customElements.define(settings.alternativeHtmlName ?? 'bcp47-picker', Bcp47Picker)
 }
