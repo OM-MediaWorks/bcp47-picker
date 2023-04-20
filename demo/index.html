@@ -65,14 +65,39 @@
       </div>
     </div>
     
-    <div class="mb-3">
+    <div class="mb-5">
       <label for="second" class="form-label">Languages</label>
       <bcp47-picker-extra id="second" value="fr,de" multiple></bcp47-picker-extra>
       <div class="form-text">
         This example uses the <a href="https://hisregistries.org/rolv/" target="_blank">ROLV</a> dataset.
       </div>
     </div>
+    <div class="mb-4">
+      <h4 class="mb-3">Creating your own languages index JSON</h4>
+      <p>It is possible to create your own data file. Why would you do this? Within the BCP47 there are multiple ways to arrive at a language. Organizations can have different preferred language codes.</p>
+      <ul>
+        <li>Start the bcp47-picker with a sources getter. See /demo/demo.js</li>
+        <li>Create a JSON file which contains all the data.</li>
+      </ul>
 
+      <h5>Data format of the JSON</h5>
+      The JSON file MUST be an array with the following structure:
+      <pre>
+      <code>
+[
+  ["BCP47-CODE", 
+    ["LABEL", 
+      [
+        "Alternative name 1", 
+        "Alternative name 2"
+      ]
+    ]
+  ]
+]
+      </code>
+      </pre>
+      <p></p>
+    </div>
   </div>
 </body>
 </html>
