@@ -56987,7 +56987,7 @@ var $0757cf2a9f037b0c$export$2cd8252107eb640b = function() {
 
 (0, $0757cf2a9f037b0c$export$2cd8252107eb640b)();
 (0, $0757cf2a9f037b0c$export$2cd8252107eb640b)({
-    alternativeHtmlName: "bcp47-picker-extra",
+    alternativeHtmlName: "bcp47-picker-rolv",
     get sources () {
         return (0, $2dfd95a460aa32d3$export$2e2bcd8739ae039)(function() {
             var _tmp;
@@ -57023,14 +57023,45 @@ var $0757cf2a9f037b0c$export$2cd8252107eb640b = function() {
         })();
     }
 });
+(0, $0757cf2a9f037b0c$export$2cd8252107eb640b)({
+    alternativeHtmlName: "bcp47-picker-iso",
+    get sources () {
+        return (0, $2dfd95a460aa32d3$export$2e2bcd8739ae039)(function() {
+            var _tmp;
+            return (0, $a416c163d9ea00bd$export$67ebef60e6f28a6)(this, function(_state) {
+                switch(_state.label){
+                    case 0:
+                        _tmp = {};
+                        return [
+                            4,
+                            fetch("./data/iso-639-3.json").then(function(response) {
+                                return response.json();
+                            }).then(function(json) {
+                                return new Map(json);
+                            })
+                        ];
+                    case 1:
+                        return [
+                            2,
+                            (_tmp.iso = _state.sent(), _tmp)
+                        ];
+                }
+            });
+        })();
+    }
+});
 var $b81c5857337cd101$var$picker1 = document.querySelector("bcp47-picker#first");
 $b81c5857337cd101$var$picker1.addEventListener("change", function(event) {
     console.log(event);
 });
-var $b81c5857337cd101$var$picker2 = document.querySelector("bcp47-picker-extra#second");
+var $b81c5857337cd101$var$picker2 = document.querySelector("bcp47-picker-rolv#second");
 $b81c5857337cd101$var$picker2.addEventListener("change", function(event) {
+    console.log(event);
+});
+var $b81c5857337cd101$var$picker3 = document.querySelector("bcp47-picker-iso");
+$b81c5857337cd101$var$picker3.addEventListener("change", function(event) {
     console.log(event);
 });
 
 })();
-//# sourceMappingURL=index.e13df77f.js.map
+//# sourceMappingURL=index.cbf133bc.js.map

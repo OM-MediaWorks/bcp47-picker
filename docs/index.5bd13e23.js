@@ -55642,7 +55642,7 @@ const $bb1ab12bbffef664$export$2cd8252107eb640b = async (givenSettings = {})=>{
 
 (0, $bb1ab12bbffef664$export$2cd8252107eb640b)();
 (0, $bb1ab12bbffef664$export$2cd8252107eb640b)({
-    alternativeHtmlName: "bcp47-picker-extra",
+    alternativeHtmlName: "bcp47-picker-rolv",
     get sources () {
         return (async ()=>{
             return {
@@ -55652,14 +55652,28 @@ const $bb1ab12bbffef664$export$2cd8252107eb640b = async (givenSettings = {})=>{
         })();
     }
 });
+(0, $bb1ab12bbffef664$export$2cd8252107eb640b)({
+    alternativeHtmlName: "bcp47-picker-iso",
+    get sources () {
+        return (async ()=>{
+            return {
+                iso: await fetch("./data/iso-639-3.json").then((response)=>response.json()).then((json)=>new Map(json))
+            };
+        })();
+    }
+});
 const $b240cded1d903745$var$picker1 = document.querySelector("bcp47-picker#first");
 $b240cded1d903745$var$picker1.addEventListener("change", (event)=>{
     console.log(event);
 });
-const $b240cded1d903745$var$picker2 = document.querySelector("bcp47-picker-extra#second");
+const $b240cded1d903745$var$picker2 = document.querySelector("bcp47-picker-rolv#second");
 $b240cded1d903745$var$picker2.addEventListener("change", (event)=>{
+    console.log(event);
+});
+const $b240cded1d903745$var$picker3 = document.querySelector("bcp47-picker-iso");
+$b240cded1d903745$var$picker3.addEventListener("change", (event)=>{
     console.log(event);
 });
 
 
-//# sourceMappingURL=index.7f933635.js.map
+//# sourceMappingURL=index.5bd13e23.js.map
