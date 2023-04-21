@@ -24,7 +24,7 @@ export default {
       showSearchButton: 'btn btn-outline-secondary',
       backButton: 'btn btn-outline-secondary',
       results: 'list-group',
-      resultItem: 'list-group-item list-group-item-action',
+      resultItem: 'list-group-item list-group-item-action d-flex gap-2',
       code: 'badge rounded-pill bg-light text-dark',
       resultCount: 'input-group-text',
       collapseButton: 'btn btn-outline-secondary',
@@ -34,5 +34,8 @@ export default {
       advancedTitle: 'mb-2',
       valueItem: 'item',
       addItemButton: 'btn btn-outline-secondary',
-    }
+      alternativeNames: 'text-truncate text-muted fst-italic fw-light pe-1',
+      name: 'flex-nowrap bcp47-name-span'
+    },
+    forceCanonical: true,
   } as Settings

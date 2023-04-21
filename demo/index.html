@@ -31,6 +31,9 @@
       <h4>Features</h4>
       <ul>
         <li>Fast search</li>
+        <li>Force canonicalization but can be disabled</li>
+        <li>Singular and plural values</li>
+        <li>Supports scripts and regions, the full BCP47 spec</li>
         <li>Able to support thousands of languages</li>
         <li>Pluggable, add your own language codes</li>
         <li>All CSS classes are configurable</li>
@@ -65,8 +68,8 @@
       </div>
     </div>
     
-    <div class="mb-5">
-      <label for="second" class="form-label">Languages (ROLV)</label>
+    <div class="mb-4">
+      <label for="second" class="form-label">Languages</label>
       <bcp47-picker-rolv id="second" value="fr,de" multiple></bcp47-picker-rolv>
       <div class="form-text">
         This example uses the <a href="https://hisregistries.org/rolv/" target="_blank">ROLV</a> dataset.
@@ -74,10 +77,18 @@
     </div>
 
     <div class="mb-5">
-      <label for="second" class="form-label">Languages (ISO 639-3)</label>
+      <label for="second" class="form-label">Languages</label>
       <bcp47-picker-iso id="third" multiple></bcp47-picker-iso>
       <div class="form-text">
-        This example uses the ISO 639-3 dataset.
+        This example uses the <a href="https://hisregistries.org/rol/" target="_blank">ISO 639-3</a> dataset.
+      </div>
+    </div>
+
+    <div class="mb-5">
+      <label for="second" class="form-label">Languages</label>
+      <bcp47-picker-iso-forced id="third" multiple></bcp47-picker-iso-forced>
+      <div class="form-text">
+        This example force a canonical.
       </div>
     </div>
 

@@ -16,10 +16,20 @@ import { iso15924 } from 'iso-15924'
 import { iso31661 } from 'iso-3166'
 import { iso6393 } from 'iso-639-3'
 import { unM49 } from 'un-m49'
+import { bcp47Normalize } from 'bcp-47-normalize'
 
 import defaultSettings from './defaultSettings'
 
 import './css/style.css'
+
+import {shouldPolyfill} from '@formatjs/intl-listformat/should-polyfill'
+async function polyfill(locale: string) {
+  const unsupportedLocale = shouldPolyfill(locale)
+  if (!unsupportedLocale) return
+
+  await import('@formatjs/intl-listformat/polyfill-force')
+  await import(`@formatjs/intl-listformat/locale-data/${unsupportedLocale}`)
+}
 
 const regionCodesMerged = [
   ...iso31661.map(region => [region.alpha2, `${region.name} (ISO 31661)`]), 
@@ -29,6 +39,8 @@ const languageOptions = iso6393.map(language => [language.iso6391 ?? language.is
 const scriptOptions = iso15924.map(script => [script.code, script.name]) as [[string, string]]
 
 export const init = async (givenSettings: Partial<Settings> = {}) => {
+
+  await polyfill('en')
 
   const settings = { ...defaultSettings }
 
@@ -49,7 +61,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
 
   const index = async () => {
     for (let [sourceName, sourceItems] of Object.entries(sources)) {
-      for (const [bcp47, [name, names]] of sourceItems.entries()) {
+      for (let [bcp47, [name, names]] of sourceItems.entries()) {
         let index = 0
         searchIndex.add([sourceName, bcp47, index++], name)
         searchIndex.add([sourceName, bcp47, index++], bcp47)
@@ -95,8 +107,8 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
       await this.render()
     }
   
-    async render () {
-      return render(this, this.template())
+    async render (searchTerm: string = '') {
+      return render(this, this.template(searchTerm))
     }
 
     /**
@@ -109,15 +121,21 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
         return [index, sources[sourceName].get(index.toString())]
       })
       .filter(onlyUnique('0'))
-      .sort((a: string, b: string) => {
-        return a.length - b.length
+      .sort((a: any, b: any) => {
+        const aNormalized = bcp47Normalize(a[0]) as string
+        const bNormalized = bcp47Normalize(b[0]) as string
+
+        if (aNormalized.length !== bNormalized.length) return aNormalized.length - bNormalized.length
+
+        return aNormalized.localeCompare(bNormalized)
       })
+      .slice(0, this.maxItems)
     }
 
     /**
      * The template of the whole widget.
      */
-    template () {
+    template (searchTerm: string = '') {
       const value: Schema = this.selectedValue ? parse(this.selectedValue) : {
         language: null,
         extendedLanguageSubtags: [],
@@ -141,7 +159,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
 
         ${this.individualComponentsForm(value)}
 
-        ${this.resultsWrapper()}
+        ${this.resultsWrapper(searchTerm)}
       `
     }
 
@@ -209,7 +227,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
 
             if (event.key === 'ArrowUp') this.focusedResult--
     
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && this.searchResults?.[this.focusedResult]?.[0]) {
               await this.setValue(this.searchResults[this.focusedResult][0])
             }
     
@@ -217,7 +235,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
             if (this.focusedResult >= this.searchResults.length) this.focusedResult = this.searchResults.length - 1
 
        
-            await this.render()
+            await this.render(searchTerm)
 
             const resultsWrapper = document.querySelector('.bcp47-results')
 
@@ -234,7 +252,14 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
             }
 
             ;(this.querySelector('.bcp47-search') as HTMLInputElement)?.focus()
-          }} />
+          }}
+          onblur=${async (event:  any) => {
+            if (event.relatedTarget?.closest('.bcp47-picker') === this) return
+
+            await this.setValue(null)
+            await this.render()
+          }} 
+          />
       `
     }
 
@@ -434,12 +459,11 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     /**
      * The search results
      */
-     resultsWrapper () {
+     resultsWrapper (searchTerm: string = '') {
       return this.searchResults.length ? html`
       <div class=${`bcp47-results ${settings.theme.results}`}>
       ${this.searchResults
-        .slice(0, this.maxItems)
-        .map((item, index) => this.resultItem(item, index))}
+        .map((item, index) => this.resultItem(item, index, searchTerm))}
         <div ref=${(element: HTMLDivElement) => {
           this.observer = new IntersectionObserver(this.observerCallback.bind(this), {
             root: document.querySelector('.bcp47-results'),
@@ -457,13 +481,27 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     /**
      * The template of one result item
      */
-    resultItem ([bcp47, [name, _names]]: [string, [string, Array<string>]], index: number) {
+    resultItem ([bcp47, [name, alternativeNames]]: [string, [string, Array<string>]], index: number, searchTerm: string = '') {
+      if (!alternativeNames) alternativeNames = []
+      const alternativeNamesFiltered = alternativeNames
+        .filter(alternativeName => alternativeName.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()))
+
+      const otherAltNames = alternativeNames.filter(alternativeName => !alternativeNamesFiltered.includes(alternativeName))
+      const formatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
+
+      const altNames = formatter.format([...alternativeNamesFiltered, ...otherAltNames])
+
+      if (settings.forceCanonical) {
+        bcp47 = bcp47Normalize(bcp47, { forgiving: true })
+      }
+
       return html`
       <button type="button" class=${`bcp47-result ${settings.theme.resultItem} ${index === this.focusedResult ? 'active' : ''}`} onclick=${async () => {
         this.setValue(bcp47)
       }}>
-        <span class="bcp47-name">${name}</span>
+        <span class=${`bcp47-name ${settings.theme.name}`}>${name}</span>
         <span class=${`bcp47-code ${settings.theme.code}`}>${bcp47}</span>
+        <span class=${`bcp47-alternative-names ${settings.theme.alternativeNames}`} title=${altNames}>${altNames}</span>
       </button>`
     }
 
@@ -471,6 +509,11 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
      * Sets the value
      */
     async setValue (bcp47: string | null) {
+
+      if (settings.forceCanonical && bcp47) {
+        bcp47 = bcp47Normalize(bcp47, { forgiving: true })
+      }
+
       if (bcp47) {
         this.selectedValue = bcp47
         this.values.push(bcp47)

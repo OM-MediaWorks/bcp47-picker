@@ -14,8 +14,21 @@
 .bcp47-results {
   position: absolute;
   width: 100%;
-  top: calc(100% + 10px);
+  top: 100%;
   z-index: 10;
+  max-height: 100vh;
+  overflow-y: auto;
+
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 .25rem #b4d2ff;
+}
+
+.bcp47-search.form-control:focus,
+.bcp47-search.form-control:focus + .btn {
+  border-color: #86b7fe;
+  outline: 0;
+  box-shadow: 0 0 0 .25rem #b4d2ff;
 }
 
 .bcp47-current-value-part .bcp47-inner {
@@ -28,12 +41,6 @@
 
 .bcp47-search-wrapper {
   position: relative;
-}
-
-.bcp47-results {
-  height: 700px;
-  max-height: 100vh;
-  overflow-y: auto;
 }
 
 .bcp47-value-label {
@@ -118,4 +125,12 @@
 
 .bcp47-picker[multiple] .bcp47-value-label.active {
   font-weight: bold;
+}
+
+.bcp47-name-span {
+  white-space: nowrap;
+}
+
+.bcp47-result.active .text-muted {
+  color: white !important;
 }

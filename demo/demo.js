@@ -32,6 +32,19 @@ init({
   }
 })
 
+init({
+  alternativeHtmlName: 'bcp47-picker-iso-forced',
+  forceCanonical: true,
+  get sources () {
+    return (async () => {
+      return { 
+        iso: await fetch('./data/iso-639-3.json')
+          .then(response => response.json())
+          .then((json) => new Map(json)), 
+      }
+    })()
+  }
+})
 const picker1 = document.querySelector('bcp47-picker#first')
 picker1.addEventListener('change', (event) => {
   console.log(event)

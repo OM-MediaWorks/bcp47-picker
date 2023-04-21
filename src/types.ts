@@ -20,6 +20,8 @@ export type Theme = {
   valueItem?: string
   advancedTitle?: string
   addItemButton?: string
+  alternativeNames?: string
+  name?: string
 }
 
 export type SourceData = Array<[string, [string, Array<string>]]>
@@ -30,6 +32,7 @@ export type Settings = {
   sources: Sources
   theme: Theme,
   alternativeHtmlName: string
+  forceCanonical: boolean
 }
 
 type KeyOf<T extends object> = Extract<keyof T, string>;
