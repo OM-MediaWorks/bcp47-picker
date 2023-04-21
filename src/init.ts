@@ -49,7 +49,14 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     settings[key as keyof typeof settings] = value
   }
 
-  const sources = await settings.sources
+  const sources = Object.fromEntries(await Promise.all(settings.sources.map(async source => {
+    return [
+      source,
+      await fetch(source).then(response => response.json()).then(source => new Map(source))
+    ]
+  }))) as {
+    [key: string]: Map<string, [string, Array<string>]>
+  }
 
   const searchIndex = new Index({
     preset: 'match',

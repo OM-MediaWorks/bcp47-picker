@@ -358,7 +358,7 @@ module.exports = import("./" + (parcelRequire("iZN3Y")).resolve("tx18N")).then((
 
 var $1d451fa90c16f1b1$exports = {};
 
-(parcelRequire("iZN3Y")).register(JSON.parse('{"dL2H6":"index.90c1b52b.js","tx18N":"polyfill-force.724bb6bd.js","6zW2T":"index.e404ca8f.css"}'));
+(parcelRequire("iZN3Y")).register(JSON.parse('{"dL2H6":"index.e3e17e18.js","tx18N":"polyfill-force.724bb6bd.js","6zW2T":"index.e404ca8f.css"}'));
 
 function $96f2fa3fbababdc4$export$2e2bcd8739ae039(obj, key, value) {
     if (key in obj) Object.defineProperty(obj, key, {
@@ -63031,13 +63031,11 @@ function $9ba2ac6517409fde$export$d9b31aac4a13cff9(tag, options) {
 
 
 var /** @ts-ignore */ $5a974927d95078c1$export$2e2bcd8739ae039 = {
-    get sources () {
-        return (async ()=>{
-            return {
-                lmt: await fetch("./data/lmt.json").then((response)=>response.json()).then((json)=>new Map(json))
-            };
-        })();
-    },
+    sources: [
+        "https://bcp47.danielbeeke.nl/data/lmt.json",
+        "https://bcp47.danielbeeke.nl/data/iso-639-3.json",
+        "https://bcp47.danielbeeke.nl/data/rolv2.json"
+    ],
     alternativeHtmlName: "bcp47-picker",
     theme: {
         valueInput: "form-control",
@@ -63702,7 +63700,12 @@ const $bb1ab12bbffef664$export$2cd8252107eb640b = async (givenSettings = {})=>{
         ...(0, $5a974927d95078c1$export$2e2bcd8739ae039)
     };
     for (const [key, value] of Object.entries(givenSettings))/** @ts-ignore */ settings[key] = value;
-    const sources = await settings.sources;
+    const sources = Object.fromEntries(await Promise.all(settings.sources.map(async (source)=>{
+        return [
+            source,
+            await fetch(source).then((response)=>response.json()).then((source)=>new Map(source))
+        ];
+    })));
     const searchIndex = new (0, $46cb4c3ac7b3a143$export$2e2bcd8739ae039)({
         preset: "match",
         tokenize: "forward",
@@ -64104,35 +64107,23 @@ const $bb1ab12bbffef664$export$2cd8252107eb640b = async (givenSettings = {})=>{
 (0, $bb1ab12bbffef664$export$2cd8252107eb640b)();
 (0, $bb1ab12bbffef664$export$2cd8252107eb640b)({
     alternativeHtmlName: "bcp47-picker-rolv",
-    get sources () {
-        return (async ()=>{
-            return {
-                rolv: await fetch("./data/rolv2.json").then((response)=>response.json()).then((json)=>new Map(json)),
-                lmt: await fetch("./data/lmt.json").then((response)=>response.json()).then((json)=>new Map(json))
-            };
-        })();
-    }
+    sources: [
+        "https://bcp47.danielbeeke.nl/data/lmt.json",
+        "https://bcp47.danielbeeke.nl/data/rolv2.json"
+    ]
 });
 (0, $bb1ab12bbffef664$export$2cd8252107eb640b)({
     alternativeHtmlName: "bcp47-picker-iso",
-    get sources () {
-        return (async ()=>{
-            return {
-                iso: await fetch("./data/iso-639-3.json").then((response)=>response.json()).then((json)=>new Map(json))
-            };
-        })();
-    }
+    sources: [
+        "https://bcp47.danielbeeke.nl/data/iso-639-3.json"
+    ]
 });
 (0, $bb1ab12bbffef664$export$2cd8252107eb640b)({
     alternativeHtmlName: "bcp47-picker-iso-forced",
     forceCanonical: true,
-    get sources () {
-        return (async ()=>{
-            return {
-                iso: await fetch("./data/iso-639-3.json").then((response)=>response.json()).then((json)=>new Map(json))
-            };
-        })();
-    }
+    sources: [
+        "https://bcp47.danielbeeke.nl/data/iso-639-3.json"
+    ]
 });
 const $b240cded1d903745$var$picker1 = document.querySelector("bcp47-picker#first");
 $b240cded1d903745$var$picker1.addEventListener("change", (event)=>{
@@ -64148,4 +64139,4 @@ $b240cded1d903745$var$picker3.addEventListener("change", (event)=>{
 });
 
 
-//# sourceMappingURL=index.90c1b52b.js.map
+//# sourceMappingURL=index.e3e17e18.js.map

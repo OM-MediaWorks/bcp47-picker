@@ -25,11 +25,9 @@ export type Theme = {
 }
 
 export type SourceData = Array<[string, [string, Array<string>]]>
-export type Source = Map<string, [name: string, names?: Array<string>]>
-export type Sources = { [key: string]: Source }
 
 export type Settings = {
-  sources: Sources
+  sources: Array<string>
   theme: Theme,
   alternativeHtmlName: string
   forceCanonical: boolean

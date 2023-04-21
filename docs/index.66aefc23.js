@@ -62,6 +62,16 @@ $6a5b93d80d68e256$export$f7ad0328861e2f03 = $6a5b93d80d68e256$var$resolve;
 
 });
 
+parcelRequire.register("7FXNV", function(module, exports) {
+
+$parcel$export(module.exports, "default", function () { return $58655e464e4baf15$export$2e2bcd8739ae039; });
+function $58655e464e4baf15$export$2e2bcd8739ae039(obj) {
+    "@swc/helpers - typeof";
+    return obj && obj.constructor === Symbol ? "symbol" : typeof obj;
+}
+
+});
+
 parcelRequire.register("e5rmm", function(module, exports) {
 
 $parcel$export(module.exports, "__assign", function () { return $a416c163d9ea00bd$export$18ce0697a983be9b; });
@@ -442,16 +452,6 @@ function $a416c163d9ea00bd$export$d40a35129aaff81f(receiver, state, value, kind,
 function $a416c163d9ea00bd$export$81fdc39f203e4e04(state, receiver) {
     if (receiver === null || typeof receiver !== "object" && typeof receiver !== "function") throw new TypeError("Cannot use 'in' operator on non-object");
     return typeof state === "function" ? receiver === state : state.has(receiver);
-}
-
-});
-
-parcelRequire.register("7FXNV", function(module, exports) {
-
-$parcel$export(module.exports, "default", function () { return $58655e464e4baf15$export$2e2bcd8739ae039; });
-function $58655e464e4baf15$export$2e2bcd8739ae039(obj) {
-    "@swc/helpers - typeof";
-    return obj && obj.constructor === Symbol ? "symbol" : typeof obj;
 }
 
 });
@@ -867,7 +867,13 @@ $8c79ae272d15a29b$export$5a759dc7a1cfb72a = $8c79ae272d15a29b$var$getOrigin;
 
 var $4f8a497bdeba0041$exports = {};
 
-(parcelRequire("988ET")).register(JSON.parse('{"1tqJB":"index.c78ea19f.js","hPKpI":"polyfill-force.54ddf378.js","6zW2T":"index.e404ca8f.css"}'));
+(parcelRequire("988ET")).register(JSON.parse('{"1tqJB":"index.66aefc23.js","hPKpI":"polyfill-force.54ddf378.js","6zW2T":"index.e404ca8f.css"}'));
+
+function $cd19ae3843c9e243$export$2e2bcd8739ae039(self) {
+    if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    return self;
+}
+
 
 function $2dfd95a460aa32d3$var$asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) {
     try {
@@ -895,15 +901,6 @@ function $2dfd95a460aa32d3$export$2e2bcd8739ae039(fn) {
         });
     };
 }
-
-
-
-var $e5rmm = parcelRequire("e5rmm");
-function $cd19ae3843c9e243$export$2e2bcd8739ae039(self) {
-    if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    return self;
-}
-
 
 
 function $8d9b50f7471c26a4$export$2e2bcd8739ae039(instance, Constructor) {
@@ -63958,34 +63955,12 @@ function $b1c36f392367feb3$export$d9b31aac4a13cff9(tag, options) {
 }
 
 
-
-
-var $e5rmm = parcelRequire("e5rmm");
 var /** @ts-ignore */ $756ef23503bdc599$export$2e2bcd8739ae039 = {
-    get sources () {
-        return (0, $2dfd95a460aa32d3$export$2e2bcd8739ae039)(function() {
-            var _tmp;
-            return (0, $e5rmm.__generator)(this, function(_state) {
-                switch(_state.label){
-                    case 0:
-                        _tmp = {};
-                        return [
-                            4,
-                            fetch("./data/lmt.json").then(function(response) {
-                                return response.json();
-                            }).then(function(json) {
-                                return new Map(json);
-                            })
-                        ];
-                    case 1:
-                        return [
-                            2,
-                            (_tmp.lmt = _state.sent(), _tmp)
-                        ];
-                }
-            });
-        })();
-    },
+    sources: [
+        "https://bcp47.danielbeeke.nl/data/lmt.json",
+        "https://bcp47.danielbeeke.nl/data/iso-639-3.json",
+        "https://bcp47.danielbeeke.nl/data/rolv2.json"
+    ],
     alternativeHtmlName: "bcp47-picker",
     theme: {
         valueInput: "form-control",
@@ -64895,7 +64870,7 @@ var $0757cf2a9f037b0c$var$scriptOptions = (0, $5c5183cb1dd4b66f$export$f960cfe3b
 });
 var $0757cf2a9f037b0c$export$2cd8252107eb640b = function() {
     var _ref = (0, $2dfd95a460aa32d3$export$2e2bcd8739ae039)(function() {
-        var givenSettings, settings, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _step_value, key, value, sources, searchIndex, index, Bcp47Picker, _settings_alternativeHtmlName;
+        var givenSettings, settings, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, _step_value, key, value, sources, _, searchIndex, index, Bcp47Picker, _settings_alternativeHtmlName;
         var _arguments = arguments;
         return (0, $e5rmm.__generator)(this, function(_state) {
             switch(_state.label){
@@ -64928,12 +64903,45 @@ var $0757cf2a9f037b0c$export$2cd8252107eb640b = function() {
                             }
                         }
                     }
+                    _ = Object.fromEntries;
                     return [
                         4,
-                        settings.sources
+                        Promise.all(settings.sources.map(function() {
+                            var _ref = (0, $2dfd95a460aa32d3$export$2e2bcd8739ae039)(function(source) {
+                                var _tmp;
+                                return (0, $e5rmm.__generator)(this, function(_state) {
+                                    switch(_state.label){
+                                        case 0:
+                                            _tmp = [
+                                                source
+                                            ];
+                                            return [
+                                                4,
+                                                fetch(source).then(function(response) {
+                                                    return response.json();
+                                                }).then(function(source) {
+                                                    return new Map(source);
+                                                })
+                                            ];
+                                        case 1:
+                                            return [
+                                                2,
+                                                _tmp.concat([
+                                                    _state.sent()
+                                                ])
+                                            ];
+                                    }
+                                });
+                            });
+                            return function(source) {
+                                return _ref.apply(this, arguments);
+                            };
+                        }()))
                     ];
                 case 2:
-                    sources = _state.sent();
+                    sources = _.apply(Object, [
+                        _state.sent()
+                    ]);
                     searchIndex = new (0, $0354d21a2b6a4db7$export$2e2bcd8739ae039)({
                         preset: "match",
                         tokenize: "forward",
@@ -65648,95 +65656,23 @@ var $0757cf2a9f037b0c$export$2cd8252107eb640b = function() {
 (0, $0757cf2a9f037b0c$export$2cd8252107eb640b)();
 (0, $0757cf2a9f037b0c$export$2cd8252107eb640b)({
     alternativeHtmlName: "bcp47-picker-rolv",
-    get sources () {
-        return (0, $2dfd95a460aa32d3$export$2e2bcd8739ae039)(function() {
-            var _tmp;
-            return (0, $e5rmm.__generator)(this, function(_state) {
-                switch(_state.label){
-                    case 0:
-                        _tmp = {};
-                        return [
-                            4,
-                            fetch("./data/rolv2.json").then(function(response) {
-                                return response.json();
-                            }).then(function(json) {
-                                return new Map(json);
-                            })
-                        ];
-                    case 1:
-                        _tmp.rolv = _state.sent();
-                        return [
-                            4,
-                            fetch("./data/lmt.json").then(function(response) {
-                                return response.json();
-                            }).then(function(json) {
-                                return new Map(json);
-                            })
-                        ];
-                    case 2:
-                        return [
-                            2,
-                            (_tmp.lmt = _state.sent(), _tmp)
-                        ];
-                }
-            });
-        })();
-    }
+    sources: [
+        "https://bcp47.danielbeeke.nl/data/lmt.json",
+        "https://bcp47.danielbeeke.nl/data/rolv2.json"
+    ]
 });
 (0, $0757cf2a9f037b0c$export$2cd8252107eb640b)({
     alternativeHtmlName: "bcp47-picker-iso",
-    get sources () {
-        return (0, $2dfd95a460aa32d3$export$2e2bcd8739ae039)(function() {
-            var _tmp;
-            return (0, $e5rmm.__generator)(this, function(_state) {
-                switch(_state.label){
-                    case 0:
-                        _tmp = {};
-                        return [
-                            4,
-                            fetch("./data/iso-639-3.json").then(function(response) {
-                                return response.json();
-                            }).then(function(json) {
-                                return new Map(json);
-                            })
-                        ];
-                    case 1:
-                        return [
-                            2,
-                            (_tmp.iso = _state.sent(), _tmp)
-                        ];
-                }
-            });
-        })();
-    }
+    sources: [
+        "https://bcp47.danielbeeke.nl/data/iso-639-3.json"
+    ]
 });
 (0, $0757cf2a9f037b0c$export$2cd8252107eb640b)({
     alternativeHtmlName: "bcp47-picker-iso-forced",
     forceCanonical: true,
-    get sources () {
-        return (0, $2dfd95a460aa32d3$export$2e2bcd8739ae039)(function() {
-            var _tmp;
-            return (0, $e5rmm.__generator)(this, function(_state) {
-                switch(_state.label){
-                    case 0:
-                        _tmp = {};
-                        return [
-                            4,
-                            fetch("./data/iso-639-3.json").then(function(response) {
-                                return response.json();
-                            }).then(function(json) {
-                                return new Map(json);
-                            })
-                        ];
-                    case 1:
-                        return [
-                            2,
-                            (_tmp.iso = _state.sent(), _tmp)
-                        ];
-                }
-            });
-        })();
-    }
+    sources: [
+        "https://bcp47.danielbeeke.nl/data/iso-639-3.json"
+    ]
 });
 var $b81c5857337cd101$var$picker1 = document.querySelector("bcp47-picker#first");
 $b81c5857337cd101$var$picker1.addEventListener("change", function(event) {
@@ -65752,4 +65688,4 @@ $b81c5857337cd101$var$picker3.addEventListener("change", function(event) {
 });
 
 })();
-//# sourceMappingURL=index.c78ea19f.js.map
+//# sourceMappingURL=index.66aefc23.js.map

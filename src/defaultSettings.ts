@@ -2,19 +2,12 @@ import { Settings, SourceData } from './types'
 
 /** @ts-ignore */
 export default {
-    get sources () {
-      return (async () => {
-        return { 
-          lmt: await fetch('./data/lmt.json')
-            .then(response => response.json())
-            .then((json: SourceData) => new Map(json)), 
-          // rolv: await fetch('./data/rolv.json')
-          //   .then(response => response.json())
-          //   .then((json: SourceData) => new Map(json)), 
-        }
-      })()
-    },
-    alternativeHtmlName: 'bcp47-picker',
+  sources: [
+    'https://bcp47.danielbeeke.nl/data/lmt.json',
+    'https://bcp47.danielbeeke.nl/data/iso-639-3.json',
+    'https://bcp47.danielbeeke.nl/data/rolv2.json'
+  ],
+  alternativeHtmlName: 'bcp47-picker',
     theme: {
       valueInput: 'form-control',
       valueContainer: 'input-group',

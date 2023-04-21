@@ -4,46 +4,25 @@ init()
 
 init({
   alternativeHtmlName: 'bcp47-picker-rolv',
-  get sources () {
-    return (async () => {
-      return { 
-        rolv: await fetch('./data/rolv2.json')
-          .then(response => response.json())
-          .then((json) => new Map(json)), 
-        lmt: await fetch('./data/lmt.json')
-          .then(response => response.json())
-          .then((json) => new Map(json)), 
-
-      }
-    })()
-  }
+  sources: [
+    'https://bcp47.danielbeeke.nl/data/lmt.json',
+    'https://bcp47.danielbeeke.nl/data/rolv2.json'
+  ],
 })
 
 init({
   alternativeHtmlName: 'bcp47-picker-iso',
-  get sources () {
-    return (async () => {
-      return { 
-        iso: await fetch('./data/iso-639-3.json')
-          .then(response => response.json())
-          .then((json) => new Map(json)), 
-      }
-    })()
-  }
+  sources: [
+    'https://bcp47.danielbeeke.nl/data/iso-639-3.json',
+  ],
 })
 
 init({
   alternativeHtmlName: 'bcp47-picker-iso-forced',
   forceCanonical: true,
-  get sources () {
-    return (async () => {
-      return { 
-        iso: await fetch('./data/iso-639-3.json')
-          .then(response => response.json())
-          .then((json) => new Map(json)), 
-      }
-    })()
-  }
+  sources: [
+    'https://bcp47.danielbeeke.nl/data/iso-639-3.json',
+  ],
 })
 const picker1 = document.querySelector('bcp47-picker#first')
 picker1.addEventListener('change', (event) => {
