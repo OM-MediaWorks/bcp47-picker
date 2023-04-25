@@ -11,5 +11,5 @@
     "isolatedModules": true,
   },
   "exclude": ["src/data/*"],
-  "include": ["src/trie-search.d.ts"]
+  "include": ["src/custom.d.ts"]
 }

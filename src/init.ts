@@ -3,7 +3,6 @@ import { Settings, SchemaStrings } from './types'
 
 /** @ts-ignore */
 import Index from 'flexsearch/dist/module/index'
-
 /** @ts-ignore */
 import { encode } from 'flexsearch/dist/module/lang/latin/simple'
 
@@ -12,42 +11,42 @@ import { icon } from './helpers/icon'
 import { getValueOfOptions } from './helpers/getValueOfOptions'
 
 import { parse, stringify, Schema } from 'bcp-47'
-import { iso15924 } from 'iso-15924'
-import { iso31661 } from 'iso-3166'
-import { iso6393 } from 'iso-639-3'
-import { unM49 } from 'un-m49'
 import { bcp47Normalize } from 'bcp-47-normalize'
 
 import defaultSettings from './defaultSettings'
 
 import './css/style.css'
 
-import {shouldPolyfill} from '@formatjs/intl-listformat/should-polyfill'
-async function polyfill(locale: string) {
-  const unsupportedLocale = shouldPolyfill(locale)
-  if (!unsupportedLocale) return
+const regionCodesMerged: Array<[string, string]> = []
+const languageOptions: Array<[string, string]> = []
+const scriptOptions: Array<[string, string]> = []
 
-  await import('@formatjs/intl-listformat/polyfill-force')
-  await import(`@formatjs/intl-listformat/locale-data/${unsupportedLocale}`)
+const clean = (input: string) => input.split(' (')[0]
+
+let listsAreImported = false
+
+const importLists = async () => {
+  if (listsAreImported) return
+
+  const { iso15924 } = await import('iso-15924')
+  const { iso31661 } = await import('iso-3166')
+  const { iso6393 } = await import('iso-639-3')
+  const { unM49 } = await import('un-m49')
+
+  regionCodesMerged.push(...[
+    ...iso31661.map(region => [region.alpha2, `${region.name} (ISO 31661)`]), 
+    ...unM49.map(region => [region.code, `${region.name} (unM49)`])
+  ] as [[string, string]])
+
+  languageOptions.push(...iso6393.map(language => [language.iso6391 ?? language.iso6393, language.name]) as [[string, string]])
+  scriptOptions.push(...iso15924.map(script => [script.code, script.name]) as [[string, string]])
+
+  listsAreImported = true
 }
 
-const regionCodesMerged = [
-  ...iso31661.map(region => [region.alpha2, `${region.name} (ISO 31661)`]), 
-  ...unM49.map(region => [region.code, `${region.name} (unM49)`])
-] as [[string, string]]
-const languageOptions = iso6393.map(language => [language.iso6391 ?? language.iso6393, language.name]) as [[string, string]]
-const scriptOptions = iso15924.map(script => [script.code, script.name]) as [[string, string]]
-
 export const init = async (givenSettings: Partial<Settings> = {}) => {
-
-  await polyfill('en')
-
   const settings = { ...defaultSettings }
-
-  for (const [key, value] of Object.entries(givenSettings)) {
-    /** @ts-ignore */
-    settings[key as keyof typeof settings] = value
-  }
+  Object.assign(settings, givenSettings)
 
   const sources = Object.fromEntries(await Promise.all(settings.sources.map(async source => {
     return [
@@ -58,28 +57,32 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     [key: string]: Map<string, [string, Array<string>]>
   }
 
+  const sourceKeys = Object.keys(sources)
+
   const searchIndex = new Index({
     preset: 'match',
     tokenize: 'forward',
     cache: true,
-    /** @ts-ignore */
     encode: encode
   })
 
   const index = async () => {
+
     for (let [sourceName, sourceItems] of Object.entries(sources)) {
+      const sourceIndex = sourceKeys.indexOf(sourceName)
       for (let [bcp47, [name, names]] of sourceItems.entries()) {
         let index = 0
-        searchIndex.add([sourceName, bcp47, index++], name)
-        searchIndex.add([sourceName, bcp47, index++], bcp47)
+        searchIndex.add([sourceIndex, bcp47, index++], name)
+        searchIndex.add([sourceIndex, bcp47, index++], bcp47)
 
         if (names) {
           for (const name of names) {
-            searchIndex.add([sourceName, bcp47, index++], name)
+            searchIndex.add([sourceIndex, bcp47, index++], name)
           }  
         }
       }
     }
+
   }
 
   setTimeout(index, 100)
@@ -115,7 +118,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     }
   
     async render (searchTerm: string = '') {
-      return render(this, this.template(searchTerm))
+      return render(this, await this.template(searchTerm))
     }
 
     /**
@@ -124,13 +127,14 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     async search (searchTerm: string) {
       const bcp47Strings = await searchIndex.search(searchTerm)
 
-      return bcp47Strings.map(([sourceName, index]: [string, number]) => {
+      return bcp47Strings.map(([sourceIndex, index]: [number, number]) => {
+        const sourceName = sourceKeys[sourceIndex]
         return [index, sources[sourceName].get(index.toString())]
       })
       .filter(onlyUnique('0'))
       .sort((a: any, b: any) => {
-        const aNormalized = bcp47Normalize(a[0]) as string
-        const bNormalized = bcp47Normalize(b[0]) as string
+        const aNormalized = settings.forceCanonical ? bcp47Normalize(a[0], { forgiving: true }) as string : a[0]
+        const bNormalized = settings.forceCanonical ? bcp47Normalize(b[0], { forgiving: true }) as string : b[0]
 
         if (aNormalized.length !== bNormalized.length) return aNormalized.length - bNormalized.length
 
@@ -142,7 +146,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     /**
      * The template of the whole widget.
      */
-    template (searchTerm: string = '') {
+    async template (searchTerm: string = '') {
       const value: Schema = this.selectedValue ? parse(this.selectedValue) : {
         language: null,
         extendedLanguageSubtags: [],
@@ -158,13 +162,13 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
       return html`
         <div class=${`bcp47-value ${settings.theme.valueContainer}`}>
           ${this.selectedValue ? (
-            this.valuesDisplay()
+            await this.valuesDisplay()
           ) : this.emptyDisplay()}
 
           ${this.buttons(value)}
         </div>
 
-        ${this.individualComponentsForm(value)}
+        ${await this.individualComponentsForm(value)}
 
         ${this.resultsWrapper(searchTerm)}
       `
@@ -174,7 +178,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
       (this.querySelector('.bcp47-search') as HTMLInputElement)?.focus()
     }
 
-    label (value: Schema) {
+    async label (value: Schema) {
       let label: undefined | string = undefined
       if (value) {
         /**
@@ -189,7 +193,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
          * If not, generate it from the information we do have.
          */
         if (!label) {
-          label = this.getLabel(value)
+          label = await this.getLabel(value)
         }
       }
 
@@ -273,10 +277,10 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     /**
      * Shows the current value
      */
-    valuesDisplay () {
+    async valuesDisplay () {
       return html`
         <div class=${`bcp47-value-wrapper ${settings.theme.valueInput}`}>
-          ${this.values.map((item: string) => {
+          ${await Promise.all(this.values.map(async (item: string) => {
             const value = parse(item)
 
             return html`
@@ -285,7 +289,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
                 this.selectedValue = item
                 this.render()
               }} class=${`bcp47-value-label ${item === this.selectedValue ? 'active' : ''}`}>
-                ${this.label(value)}
+                ${await this.label(value)}
               </span>
 
               <span class=${`bcp47-value-bcp47 ${settings.theme.code}`}>
@@ -309,7 +313,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
                 ;(this.querySelector('.bcp47-search') as HTMLInputElement)!.focus()
               }}>${icon('x')}</span>
             </div>`
-          })}
+          }))}
 
           ${this.hasAttribute('multiple') ? this.emptyDisplay(true) : html``}
         </div>
@@ -349,7 +353,11 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     /**
      * The form with the seperate BCP47 components.
      */
-    individualComponentsForm (value: Schema) {
+    async individualComponentsForm (value: Schema) {
+      if (this.showIndividualComponents && !this.searchResults.length) {
+        await importLists()
+      }
+
       return this.showIndividualComponents && !this.searchResults.length ? html`
       <div class=${`bcp47-advanced ${settings.theme.advanced}`}>
         <h6 class=${`bcp47-advanced-title ${settings.theme.advancedTitle}`}>Manual configuration</h6>
@@ -392,13 +400,15 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     /**
      * Generates a selected label for a given schema.
      */
-    getLabel (value: Schema | string) {
+    async getLabel (value: Schema | string) {
+      await importLists()
+
       if (typeof value === 'string') value = parse(value)
       
       let label = ''
-      const language = value.language ? getValueOfOptions(languageOptions, value.language) : null
-      const region = value.region ? getValueOfOptions(regionCodesMerged, value.region) : null
-      const script = value.script ? getValueOfOptions(scriptOptions, value.script) : null
+      const language = value.language ? clean(getValueOfOptions(languageOptions, value.language) ?? '') : null
+      const region = value.region ? clean(getValueOfOptions(regionCodesMerged, value.region) ?? '') : null
+      const script = value.script ? clean(getValueOfOptions(scriptOptions, value.script) ?? '') : null
 
       if (language && region) {
         label = `${language} as spoken in ${region}`
@@ -494,7 +504,8 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
         .filter(alternativeName => alternativeName.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()))
 
       const otherAltNames = alternativeNames.filter(alternativeName => !alternativeNamesFiltered.includes(alternativeName))
-      const formatter = new Intl.ListFormat('en', { style: 'long', type: 'conjunction' });
+      /** @ts-ignore */
+      const formatter = Intl.ListFormat ? new Intl.ListFormat('en', { style: 'long', type: 'conjunction' }) : { format: (items) => items.join(', ') }
 
       const altNames = formatter.format([...alternativeNamesFiltered, ...otherAltNames])
 
