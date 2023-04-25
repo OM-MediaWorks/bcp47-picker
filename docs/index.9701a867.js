@@ -212,7 +212,7 @@ module.exports = (parcelRequire("1LJoW"))((parcelRequire("c3KiG")).getBundleURL(
 
 var $558aae6b5c666c7f$exports = {};
 
-(parcelRequire("988ET")).register(JSON.parse('{"1tqJB":"index.1500067b.js","2qg4L":"iso-15924.38b9250f.js","frJvv":"iso-3166.c5c390d9.js","jE0GL":"iso-639-3.0d0afcf1.js","d0Ff6":"un-m49.80863144.js","6zW2T":"index.e404ca8f.css"}'));
+(parcelRequire("988ET")).register(JSON.parse('{"1tqJB":"index.9701a867.js","2qg4L":"iso-15924.38b9250f.js","frJvv":"iso-3166.c5c390d9.js","jE0GL":"iso-639-3.0d0afcf1.js","d0Ff6":"un-m49.80863144.js","6zW2T":"index.e404ca8f.css"}'));
 
 function $cd19ae3843c9e243$export$2e2bcd8739ae039(self) {
     if (self === void 0) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -2287,6 +2287,111 @@ var $05e35bdb95590ee6$export$c7dde40abc42a582 = function(options, value) {
     })) === null || _options_find === void 0 //?.split(' (')?.[0]
      ? void 0 : _options_find[1];
 };
+
+
+// This is a cache of in-flight requests. Each request key maps to an
+// array of Promises. When the request resolves, each promise in the
+// array is pushed to.
+var $35d1d0d7113d247f$var$requests = {};
+function $35d1d0d7113d247f$export$c3c960ad782dc3a0() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, _ref$url = _ref.url, url = _ref$url === undefined ? "" : _ref$url, _ref$method = _ref.method, method = _ref$method === undefined ? "" : _ref$method, _ref$responseType = _ref.responseType, responseType = _ref$responseType === undefined ? "" : _ref$responseType, _ref$body = _ref.body, body = _ref$body === undefined ? "" : _ref$body;
+    return [
+        url,
+        method.toUpperCase(),
+        responseType,
+        body
+    ].join("||");
+}
+function $35d1d0d7113d247f$export$6fbf65a0adda0f96(requestKey) {
+    return Boolean($35d1d0d7113d247f$var$requests[requestKey]);
+}
+function $35d1d0d7113d247f$export$179b81598c08d13a() {
+    $35d1d0d7113d247f$var$requests = {};
+}
+// This loops through all of the handlers for the request and either
+// resolves or rejects them.
+function $35d1d0d7113d247f$var$resolveRequest(_ref2) {
+    var requestKey = _ref2.requestKey, res = _ref2.res, err = _ref2.err;
+    var handlers = $35d1d0d7113d247f$var$requests[requestKey] || [];
+    handlers.forEach(function(handler) {
+        if (res) handler.resolve(res);
+        else handler.reject(err);
+    });
+    // This list of handlers has been, well, handled. So we
+    // clear the handlers for the next request.
+    $35d1d0d7113d247f$var$requests[requestKey] = null;
+}
+function $35d1d0d7113d247f$export$3c0f06aa4e3158f2(input) {
+    var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var dedupeOptions = arguments[2];
+    var opts = void 0, initToUse = void 0;
+    if (dedupeOptions) {
+        opts = dedupeOptions;
+        initToUse = init;
+    } else if (init.responseType) {
+        opts = init;
+        initToUse = {};
+    } else {
+        opts = {};
+        initToUse = init;
+    }
+    var _opts = opts, requestKey = _opts.requestKey, _opts$responseType = _opts.responseType, responseType = _opts$responseType === undefined ? "" : _opts$responseType, _opts$dedupe = _opts.dedupe, dedupe = _opts$dedupe === undefined ? true : _opts$dedupe;
+    // Build the default request key if one is not passed
+    var requestKeyToUse = requestKey || $35d1d0d7113d247f$export$c3c960ad782dc3a0({
+        // If `input` is a request, then we use that URL
+        url: input.url || input,
+        // We prefer values from `init` over request objects. With `fetch()`, init
+        // takes priority over a passed-in request
+        method: initToUse.method || input.method || "",
+        body: initToUse.body || input.body || ""
+    });
+    var proxyReq = void 0;
+    if (dedupe) {
+        if (!$35d1d0d7113d247f$var$requests[requestKeyToUse]) $35d1d0d7113d247f$var$requests[requestKeyToUse] = [];
+        var handlers = $35d1d0d7113d247f$var$requests[requestKeyToUse];
+        var requestInFlight = Boolean(handlers.length);
+        var requestHandler = {};
+        proxyReq = new Promise(function(resolve, reject) {
+            requestHandler.resolve = resolve;
+            requestHandler.reject = reject;
+        });
+        handlers.push(requestHandler);
+        if (requestInFlight) return proxyReq;
+    }
+    var request = fetch(input, initToUse).then(function(res) {
+        var responseTypeToUse = void 0;
+        if (responseType instanceof Function) responseTypeToUse = responseType(res);
+        else if (responseType) responseTypeToUse = responseType;
+        else if (res.status === 204) responseTypeToUse = "text";
+        else responseTypeToUse = "json";
+        // The response body is a ReadableStream. ReadableStreams can only be read a single
+        // time, so we must handle that in a central location, here, before resolving
+        // the fetch.
+        return res[responseTypeToUse]().then(function(data) {
+            res.data = data;
+            if (dedupe) $35d1d0d7113d247f$var$resolveRequest({
+                requestKey: requestKeyToUse,
+                res: res
+            });
+            else return res;
+        }, function() {
+            res.data = null;
+            if (dedupe) $35d1d0d7113d247f$var$resolveRequest({
+                requestKey: requestKeyToUse,
+                res: res
+            });
+            else return res;
+        });
+    }, function(err) {
+        if (dedupe) $35d1d0d7113d247f$var$resolveRequest({
+            requestKey: requestKeyToUse,
+            err: err
+        });
+        else return Promise.reject(err);
+    });
+    if (dedupe) return proxyReq;
+    else return request;
+}
 
 
 /**
@@ -10398,10 +10503,8 @@ var $0757cf2a9f037b0c$export$2cd8252107eb640b = function() {
                                             ];
                                             return [
                                                 4,
-                                                fetch(source).then(function(response) {
-                                                    return response.json();
-                                                }).then(function(source) {
-                                                    return new Map(source);
+                                                (0, $35d1d0d7113d247f$export$3c0f06aa4e3158f2)(source).then(function(response) {
+                                                    return new Map(response.data);
                                                 })
                                             ];
                                         case 1:
@@ -11364,4 +11467,4 @@ if (location.pathname !== "/alone") {
 }
 
 })();
-//# sourceMappingURL=index.1500067b.js.map
+//# sourceMappingURL=index.9701a867.js.map

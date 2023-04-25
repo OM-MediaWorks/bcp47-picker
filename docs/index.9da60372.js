@@ -87,7 +87,7 @@ module.exports = import("./" + (parcelRequire("iZN3Y")).resolve("fzIvo")).then((
 
 var $d0c82d1939bcb746$exports = {};
 
-(parcelRequire("iZN3Y")).register(JSON.parse('{"dL2H6":"index.6926603c.js","lKWV7":"iso-15924.28314dfc.js","ep2bv":"iso-3166.b68c386c.js","dqC2M":"iso-639-3.fae4afeb.js","fzIvo":"un-m49.970dc3e7.js","6zW2T":"index.e404ca8f.css"}'));
+(parcelRequire("iZN3Y")).register(JSON.parse('{"dL2H6":"index.9da60372.js","lKWV7":"iso-15924.28314dfc.js","ep2bv":"iso-3166.b68c386c.js","dqC2M":"iso-639-3.fae4afeb.js","fzIvo":"un-m49.970dc3e7.js","6zW2T":"index.e404ca8f.css"}'));
 
 class $e7212ca0a4304309$export$ab7b06d4df4bd22c extends Map {
     set(key, value) {
@@ -1315,6 +1315,111 @@ const $3087701a1feb61cf$export$c7dde40abc42a582 = (options, value)=>{
     return options.find((option)=>option[0] === value)?.[1] //?.split(' (')?.[0]
     ;
 };
+
+
+// This is a cache of in-flight requests. Each request key maps to an
+// array of Promises. When the request resolves, each promise in the
+// array is pushed to.
+var $206f33389fcf828d$var$requests = {};
+function $206f33389fcf828d$export$c3c960ad782dc3a0() {
+    var _ref = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {}, _ref$url = _ref.url, url = _ref$url === undefined ? "" : _ref$url, _ref$method = _ref.method, method = _ref$method === undefined ? "" : _ref$method, _ref$responseType = _ref.responseType, responseType = _ref$responseType === undefined ? "" : _ref$responseType, _ref$body = _ref.body, body = _ref$body === undefined ? "" : _ref$body;
+    return [
+        url,
+        method.toUpperCase(),
+        responseType,
+        body
+    ].join("||");
+}
+function $206f33389fcf828d$export$6fbf65a0adda0f96(requestKey) {
+    return Boolean($206f33389fcf828d$var$requests[requestKey]);
+}
+function $206f33389fcf828d$export$179b81598c08d13a() {
+    $206f33389fcf828d$var$requests = {};
+}
+// This loops through all of the handlers for the request and either
+// resolves or rejects them.
+function $206f33389fcf828d$var$resolveRequest(_ref2) {
+    var requestKey = _ref2.requestKey, res = _ref2.res, err = _ref2.err;
+    var handlers = $206f33389fcf828d$var$requests[requestKey] || [];
+    handlers.forEach(function(handler) {
+        if (res) handler.resolve(res);
+        else handler.reject(err);
+    });
+    // This list of handlers has been, well, handled. So we
+    // clear the handlers for the next request.
+    $206f33389fcf828d$var$requests[requestKey] = null;
+}
+function $206f33389fcf828d$export$3c0f06aa4e3158f2(input) {
+    var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var dedupeOptions = arguments[2];
+    var opts = void 0, initToUse = void 0;
+    if (dedupeOptions) {
+        opts = dedupeOptions;
+        initToUse = init;
+    } else if (init.responseType) {
+        opts = init;
+        initToUse = {};
+    } else {
+        opts = {};
+        initToUse = init;
+    }
+    var _opts = opts, requestKey = _opts.requestKey, _opts$responseType = _opts.responseType, responseType = _opts$responseType === undefined ? "" : _opts$responseType, _opts$dedupe = _opts.dedupe, dedupe = _opts$dedupe === undefined ? true : _opts$dedupe;
+    // Build the default request key if one is not passed
+    var requestKeyToUse = requestKey || $206f33389fcf828d$export$c3c960ad782dc3a0({
+        // If `input` is a request, then we use that URL
+        url: input.url || input,
+        // We prefer values from `init` over request objects. With `fetch()`, init
+        // takes priority over a passed-in request
+        method: initToUse.method || input.method || "",
+        body: initToUse.body || input.body || ""
+    });
+    var proxyReq = void 0;
+    if (dedupe) {
+        if (!$206f33389fcf828d$var$requests[requestKeyToUse]) $206f33389fcf828d$var$requests[requestKeyToUse] = [];
+        var handlers = $206f33389fcf828d$var$requests[requestKeyToUse];
+        var requestInFlight = Boolean(handlers.length);
+        var requestHandler = {};
+        proxyReq = new Promise(function(resolve, reject) {
+            requestHandler.resolve = resolve;
+            requestHandler.reject = reject;
+        });
+        handlers.push(requestHandler);
+        if (requestInFlight) return proxyReq;
+    }
+    var request = fetch(input, initToUse).then(function(res) {
+        var responseTypeToUse = void 0;
+        if (responseType instanceof Function) responseTypeToUse = responseType(res);
+        else if (responseType) responseTypeToUse = responseType;
+        else if (res.status === 204) responseTypeToUse = "text";
+        else responseTypeToUse = "json";
+        // The response body is a ReadableStream. ReadableStreams can only be read a single
+        // time, so we must handle that in a central location, here, before resolving
+        // the fetch.
+        return res[responseTypeToUse]().then(function(data) {
+            res.data = data;
+            if (dedupe) $206f33389fcf828d$var$resolveRequest({
+                requestKey: requestKeyToUse,
+                res: res
+            });
+            else return res;
+        }, function() {
+            res.data = null;
+            if (dedupe) $206f33389fcf828d$var$resolveRequest({
+                requestKey: requestKeyToUse,
+                res: res
+            });
+            else return res;
+        });
+    }, function(err) {
+        if (dedupe) $206f33389fcf828d$var$resolveRequest({
+            requestKey: requestKeyToUse,
+            err: err
+        });
+        else return Promise.reject(err);
+    });
+    if (dedupe) return proxyReq;
+    else return request;
+}
 
 
 /**
@@ -9140,7 +9245,7 @@ const $bb1ab12bbffef664$export$2cd8252107eb640b = async (givenSettings = {})=>{
     const sources = Object.fromEntries(await Promise.all(settings.sources.map(async (source)=>{
         return [
             source,
-            await fetch(source).then((response)=>response.json()).then((source)=>new Map(source))
+            await (0, $206f33389fcf828d$export$3c0f06aa4e3158f2)(source).then((response)=>new Map(response.data))
         ];
     })));
     const sourceKeys = Object.keys(sources);
@@ -9600,4 +9705,4 @@ if (location.pathname !== "/alone") {
 }
 
 
-//# sourceMappingURL=index.6926603c.js.map
+//# sourceMappingURL=index.9da60372.js.map

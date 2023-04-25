@@ -9,7 +9,7 @@ import { encode } from 'flexsearch/dist/module/lang/latin/simple'
 import { onlyUnique } from './helpers/onlyUnique'
 import { icon } from './helpers/icon'
 import { getValueOfOptions } from './helpers/getValueOfOptions'
-
+import { fetchDedupe } from 'fetch-dedupe';
 import { parse, stringify, Schema } from 'bcp-47'
 import { bcp47Normalize } from 'bcp-47-normalize'
 
@@ -51,7 +51,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
   const sources = Object.fromEntries(await Promise.all(settings.sources.map(async source => {
     return [
       source,
-      await fetch(source).then(response => response.json()).then(source => new Map(source))
+      await fetchDedupe(source).then((response: any) => new Map(response.data))
     ]
   }))) as {
     [key: string]: Map<string, [string, Array<string>]>
