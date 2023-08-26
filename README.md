@@ -1,6 +1,7 @@
-# BCP47 Picker
+# BCP47 Language picker
 
-This is a pluggable BCP47 picker. It allows the developer to add bcp47 tags with a label that are searchable. It uses a Trie structure so results are instant. The total size of the package is quite big. 
+A language picker which uses the [BCP47](https://en.wikipedia.org/wiki/IETF_language_tag). It uses the following standards: iso-3166, iso-639, iso-15924 and the un-m49.
+With this language picker you are sure you are using the right language codes for each specific language. It is even possible to add your own private use language codes such as the [ROLV](https://hisregistries.org/rolv/).
 
 ## Demo
 
@@ -37,10 +38,3 @@ Core datasets and specs:
 <img src="images/properties.png" width="500" />
 <hr>
 <img src="images/advanced-properties.png" width="500" />
-
-## Future goals:
-
-- Tree shakeable
-- Plugins for 'private use subtags' so that a value can be entered and viewed with a custom sub widget.
-- Translations for the UI via fluent.js
-- Cleanup CSS (Make Bootstrap fully optional)
