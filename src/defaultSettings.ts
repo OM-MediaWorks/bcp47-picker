@@ -3,9 +3,9 @@ import { Settings, SourceData } from './types'
 /** @ts-ignore */
 export default {
   sources: [
-    'https://bcp47.om-mediaworks.global/data/lmt.json',
-    'https://bcp47.om-mediaworks.global/data/iso-639-3.json',
-    'https://bcp47.om-mediaworks.global/data/rolv2.json'
+    'https://bcp47.mediaworks.global/data/lmt.json',
+    'https://bcp47.mediaworks.global/data/iso-639-3.json',
+    'https://bcp47.mediaworks.global/data/rolv2.json'
   ],
   alternativeHtmlName: 'bcp47-picker',
     theme: {
