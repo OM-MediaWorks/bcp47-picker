@@ -9,9 +9,9 @@ if (location.pathname === '/alone') {
 
   init({
     sources: [
-      'https://bcp47.danielbeeke.nl/data/lmt.json',
-      // 'https://bcp47.danielbeeke.nl/data/iso-639-3.json',
-      // 'https://bcp47.danielbeeke.nl/data/rolv2.json'
+      'https://bcp47.mediaworks.global/data/lmt.json',
+      // 'https://bcp47.mediaworks.global/data/iso-639-3.json',
+      // 'https://bcp47.mediaworks.global/data/rolv2.json'
     ],  
   }
   )
@@ -23,15 +23,15 @@ if (location.pathname !== '/alone') {
   init({
     alternativeHtmlName: 'bcp47-picker-rolv',
     sources: [
-      'https://bcp47.danielbeeke.nl/data/lmt.json',
-      'https://bcp47.danielbeeke.nl/data/rolv2.json'
+      'https://bcp47.mediaworks.global/data/lmt.json',
+      'https://bcp47.mediaworks.global/data/rolv2.json'
     ],
   })
   
   init({
     alternativeHtmlName: 'bcp47-picker-iso',
     sources: [
-      'https://bcp47.danielbeeke.nl/data/iso-639-3.json',
+      'https://bcp47.mediaworks.global/data/iso-639-3.json',
     ],
   })
   
@@ -39,7 +39,7 @@ if (location.pathname !== '/alone') {
     alternativeHtmlName: 'bcp47-picker-iso-forced',
     forceCanonical: true,
     sources: [
-      'https://bcp47.danielbeeke.nl/data/iso-639-3.json',
+      'https://bcp47.mediaworks.global/data/iso-639-3.json',
     ],
   })
   const picker1 = document.querySelector('bcp47-picker#first')
