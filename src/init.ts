@@ -93,7 +93,6 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     public searchIndex: typeof Index
     public selectedValue?: string | null
     public values: Array<string> = []
-    public value?: string
     public showIndividualComponents: boolean = false
     public showAdvanced: boolean = false
     public isEditing: boolean = false
@@ -102,6 +101,14 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     private defaultMaxItems: number = 20
     public bcp47Index: Map<string, Array<[source: string, index: number]>> = new Map()
     private focusedResult = 0
+    
+    public get value(): string {
+      return this.values.join(',') ?? ''
+    }
+    public set value(new_val: string) {
+      this.values = new_val.split(/,| /g) ?? []
+      this.selectedValue = this.values?.[0] ?? ''
+    }
 
     /**
      * We render first and then we index the data.
@@ -222,7 +229,6 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
             if (event.key === 'Backspace' && searchTerm.length === 0) {
               this.values.pop()
               this.selectedValue = this.values[0]
-              this.value = this.values.join(',')
               this.dispatchEvent(new CustomEvent('change'))
             }
             if (event.key === 'Escape') {
@@ -307,7 +313,6 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
                 }
 
                 this.selectedValue = this.values[0]
-                this.value = this.values.join(',') ?? ''
                 this.dispatchEvent(new CustomEvent('change'))
                 await this.render()
                 ;(this.querySelector('.bcp47-search') as HTMLInputElement)!.focus()
@@ -536,7 +541,6 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
         this.selectedValue = bcp47
         this.values.push(bcp47)
       }
-      this.value = this.values.join(',')
       this.isEditing = false
       this.searchResults = []
       this.maxItems = this.defaultMaxItems
