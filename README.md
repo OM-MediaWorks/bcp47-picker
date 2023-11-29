@@ -3,6 +3,10 @@
 A language picker which uses the [BCP47](https://en.wikipedia.org/wiki/IETF_language_tag). It uses the following standards: iso-3166, iso-639, iso-15924 and the un-m49.
 With this language picker you are sure you are using the right language codes for each specific language. It is even possible to add your own private use language codes such as the [ROLV](https://hisregistries.org/rolv/).
 
+The widget uses Bootstrap for styles. If you do not likes this you have the ability to override the CSS classes and provide styles yourself.
+
+You must make sure the CSS of Bootstrap is loaded by yourself. 
+
 ## Demo
 
 [Demo](https://bcp47.danielbeeke.nl)

@@ -3,7 +3,7 @@ import { init } from '../src/init'
 if (location.pathname === '/alone') {
   document.body.innerHTML = `
   <div class="page">
-    <bcp47-picker id="first" value="nl"></bcp47-picker>
+    <bcp47-picker id="first" multiple value="nl,en"></bcp47-picker>
   </div>
   `
 

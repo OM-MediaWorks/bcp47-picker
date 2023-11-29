@@ -89,11 +89,12 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
 
   class Bcp47Picker extends HTMLElement {
 
+    static formAssociated = true;
+
     public searchResults: Array<any> = []
     public searchIndex: typeof Index
     public selectedValue?: string | null
     public values: Array<string> = []
-    public value?: string
     public showIndividualComponents: boolean = false
     public showAdvanced: boolean = false
     public isEditing: boolean = false
@@ -103,11 +104,45 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     public bcp47Index: Map<string, Array<[source: string, index: number]>> = new Map()
     private focusedResult = 0
 
+    private internals_: ElementInternals = new ElementInternals()
+
+    constructor() {
+      super();
+
+      if ('ElementInternals' in window && 'setFormValue' in window.ElementInternals.prototype) {
+        // Get access to the internal form control APIs
+        this.internals_ = this.attachInternals();
+      }
+
+      // internal value for this control
+      this.values = this.getAttribute('value')?.split(/,| /g) ?? []
+    }
+  
+    // See https://web.dev/articles/more-capable-form-controls#defining_a_form-associated_custom_element
+    // Form controls usually expose a "value" property
+    public get value(): string { return this.values.join(',') ?? '' }
+    public set value(newValue: string) {
+      this.values = newValue.split(/,| /g) ?? []
+      this.selectedValue = this.values?.[0] ?? ''
+    }
+
+    // The following properties and methods aren't strictly required,
+    // but browser-level form controls provide them. Providing them helps
+    // ensure consistency with browser-provided controls.
+    get form() { return this.internals_.form; }
+    get name() { return this.getAttribute('name'); }
+    get type() { return this.localName; }
+    get validity() {return this.internals_.validity; }
+    get validationMessage() {return this.internals_.validationMessage; }
+    get willValidate() {return this.internals_.willValidate; }
+
+    checkValidity() { return this.internals_.checkValidity(); }
+    reportValidity() {return this.internals_.reportValidity(); }
+
     /**
      * We render first and then we index the data.
      */
     async connectedCallback () {
-      this.values = this.getAttribute('value')?.split(/,| /g) ?? []
       this.selectedValue = this.values?.[0] ?? ''
       this.classList.add('bcp47-picker')
 
@@ -222,7 +257,6 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
             if (event.key === 'Backspace' && searchTerm.length === 0) {
               this.values.pop()
               this.selectedValue = this.values[0]
-              this.value = this.values.join(',')
               this.dispatchEvent(new CustomEvent('change'))
             }
             if (event.key === 'Escape') {
@@ -267,8 +301,9 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
           onblur=${async (event:  any) => {
             if (event.relatedTarget?.closest('.bcp47-picker') === this) return
 
-            await this.setValue(null)
-            await this.render()
+            // I removed this because of https://github.com/OM-MediaWorks/bcp47-picker/issues/10
+            // await this.setValue(null)
+            // await this.render()
           }} 
           />
       `
@@ -307,7 +342,6 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
                 }
 
                 this.selectedValue = this.values[0]
-                this.value = this.values.join(',') ?? ''
                 this.dispatchEvent(new CustomEvent('change'))
                 await this.render()
                 ;(this.querySelector('.bcp47-search') as HTMLInputElement)!.focus()
@@ -536,7 +570,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
         this.selectedValue = bcp47
         this.values.push(bcp47)
       }
-      this.value = this.values.join(',')
+
       this.isEditing = false
       this.searchResults = []
       this.maxItems = this.defaultMaxItems

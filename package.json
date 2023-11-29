@@ -1,6 +1,6 @@
 {
   "name": "bcp47-picker",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "A CustomElement following: https://www.w3.org/International/questions/qa-choosing-language-tags",
   "repository": {
     "type": "git",
