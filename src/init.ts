@@ -104,7 +104,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     public bcp47Index: Map<string, Array<[source: string, index: number]>> = new Map()
     private focusedResult = 0
 
-    private internals_: ElementInternals = new ElementInternals()
+    private internals_: ElementInternals
 
     constructor() {
       super();
@@ -112,6 +112,10 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
       if ('ElementInternals' in window && 'setFormValue' in window.ElementInternals.prototype) {
         // Get access to the internal form control APIs
         this.internals_ = this.attachInternals();
+      }
+      else {
+        /** @ts-ignore */
+        this.internals_ = {}
       }
 
       // internal value for this control
