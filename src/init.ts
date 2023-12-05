@@ -94,7 +94,6 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     public searchResults: Array<any> = []
     public searchIndex: typeof Index
     public selectedValue?: string | null
-    public values: Array<string> = []
     public showIndividualComponents: boolean = false
     public showAdvanced: boolean = false
     public isEditing: boolean = false
@@ -103,12 +102,12 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     private defaultMaxItems: number = 20
     public bcp47Index: Map<string, Array<[source: string, index: number]>> = new Map()
     private focusedResult = 0
-
+    #values: string[] = []
     private internals_: ElementInternals
 
     constructor() {
       super();
-
+     
       if ('ElementInternals' in window && 'setFormValue' in window.ElementInternals.prototype) {
         // Get access to the internal form control APIs
         this.internals_ = this.attachInternals();
@@ -119,15 +118,28 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
       }
 
       // internal value for this control
-      this.values = this.getAttribute('value')?.split(/,| /g) ?? []
+      this.value = this.getAttribute('value') ?? ''
+      this.values = this.value.split(/,| /g) ?? []
+      this.selectedValue = this.values?.[0] ?? ''
     }
   
+    public get values () {
+      return this.#values
+    }
+
+    public set values (values: string[]) {
+      this.#values = values
+      this.selectedValue = values?.[0] ?? ''
+      this.internals_.setFormValue(this.value)
+    }
+
     // See https://web.dev/articles/more-capable-form-controls#defining_a_form-associated_custom_element
     // Form controls usually expose a "value" property
     public get value(): string { return this.values.join(',') ?? '' }
     public set value(newValue: string) {
       this.values = newValue.split(/,| /g) ?? []
       this.selectedValue = this.values?.[0] ?? ''
+      this.internals_.setFormValue(this.value)
     }
 
     // The following properties and methods aren't strictly required,
@@ -147,7 +159,6 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
      * We render first and then we index the data.
      */
     async connectedCallback () {
-      this.selectedValue = this.values?.[0] ?? ''
       this.classList.add('bcp47-picker')
 
       if (this.bcp47Index.size) return
@@ -259,12 +270,8 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
             this.searchResults = await this.search(searchTerm)            
 
             if (event.key === 'Backspace' && searchTerm.length === 0) {
-              this.values.pop()
-              this.selectedValue = this.values[0]
+              this.values = this.values.slice(0, this.values.length - 1)
               this.dispatchEvent(new CustomEvent('change'))
-            }
-            if (event.key === 'Escape') {
-              await this.setValue(null)
             }
             if (event.key === 'ArrowDown') {
               this.focusedResult++
@@ -277,7 +284,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
             if (event.key === 'ArrowUp') this.focusedResult--
     
             if (event.key === 'Enter' && this.searchResults?.[this.focusedResult]?.[0]) {
-              await this.setValue(this.searchResults[this.focusedResult][0])
+              await this.addValue(this.searchResults[this.focusedResult][0])
             }
     
             if (this.focusedResult < 0) this.focusedResult = 0
@@ -302,7 +309,11 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
 
             ;(this.querySelector('.bcp47-search') as HTMLInputElement)?.focus()
           }}
+          onfocus=${() => {
+            this.classList.add('focused')
+          }}
           onblur=${async (event:  any) => {
+            this.classList.remove('focused')
             if (event.relatedTarget?.closest('.bcp47-picker') === this) return
 
             // I removed this because of https://github.com/OM-MediaWorks/bcp47-picker/issues/10
@@ -337,12 +348,8 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
               
               <span class="bcp47-remove-value" onclick=${async () => {
                 const selectedItem: string | undefined = this.values.find((innerValue: string) => innerValue === item)
-
                 if (selectedItem) {
-                  const index = this.values.indexOf(selectedItem)
-                  if (index !== -1) {
-                    this.values.splice(index, 1)
-                  }  
+                  this.values = this.values.filter(item => item !== selectedItem)
                 }
 
                 this.selectedValue = this.values[0]
@@ -496,7 +503,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
           const oldValue = stringify(value)
           value[key] = (event.target as HTMLInputElement).value
           this.values = this.values.filter(item => item !== oldValue)
-          this.setValue(stringify(value))
+          this.addValue(stringify(value))
         }} list=${key} autocomplete="off" .value=${value[key] ?? ''}>
         <label>${label}</label>
         <datalist id=${key}>
@@ -553,7 +560,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
 
       return html`
       <button type="button" class=${`bcp47-result ${settings.theme.resultItem} ${index === this.focusedResult ? 'active' : ''}`} onclick=${async () => {
-        this.setValue(bcp47)
+        this.addValue(bcp47)
       }}>
         <span class=${`bcp47-name ${settings.theme.name}`}>${name}</span>
         <span class=${`bcp47-code ${settings.theme.code}`}>${bcp47}</span>
@@ -564,7 +571,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
     /**
      * Sets the value
      */
-    async setValue (bcp47: string | null) {
+    async addValue (bcp47: string | null) {
 
       if (settings.forceCanonical && bcp47) {
         bcp47 = bcp47Normalize(bcp47, { forgiving: true })
@@ -572,7 +579,7 @@ export const init = async (givenSettings: Partial<Settings> = {}) => {
 
       if (bcp47) {
         this.selectedValue = bcp47
-        this.values.push(bcp47)
+        this.values = [...this.values, bcp47]
       }
 
       this.isEditing = false

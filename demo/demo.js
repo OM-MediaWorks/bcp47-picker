@@ -3,9 +3,23 @@ import { init } from '../src/init'
 if (location.pathname === '/alone') {
   document.body.innerHTML = `
   <div class="page">
-    <bcp47-picker id="first" multiple value="nl,en"></bcp47-picker>
+    <form>
+      <bcp47-picker name="language" multiple value="nl,en"></bcp47-picker>
+      <button>Submit</button>
+    </form>
   </div>
   `
+
+  const form = document.querySelector('form')
+  
+  form.addEventListener('submit', (event) => {
+    event.preventDefault()
+    const data = new FormData(form);
+    console.log(data, form)
+    for (const [name,value] of data) {
+      console.log(name, ":", value)
+    }
+  })
 
   init({
     sources: [

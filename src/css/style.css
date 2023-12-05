@@ -24,10 +24,10 @@
   box-shadow: 0 0 0 .25rem #b4d2ff;
 }
 
-.bcp47-search.form-control:focus,
-.bcp47-search.form-control:focus + .btn {
+.bcp47-picker.focused .bcp47-value {
   border-color: #86b7fe;
   outline: 0;
+  border-radius: 5px;
   box-shadow: 0 0 0 .25rem #b4d2ff;
 }
 
@@ -81,6 +81,10 @@
   width: 10px;
 }
 
+.bcp47-search.form-control:focus {
+  box-shadow: none;
+}
+
 .bcp47-search.form-control.hide-borders {
   border: none;
   margin: -5px;
@@ -105,6 +109,10 @@
 
 .bcp47-observer-spacer {
   flex: 0 0 var(--items);
+}
+
+.bcp47-value {
+  min-height: 40px;
 }
 
 .bcp47-value-item {
